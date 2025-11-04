@@ -1,0 +1,27 @@
+name: Build & Deploy (Local GitOps - local test)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t localhost:5001/auth-service:${{ github.run_number }} ./auth-service
+
+      - name: Push to local registry
+        run: |
+          docker push localhost:5001/auth-service:${{ github.run_number }}
+
+      - name: Bump Helm chart image tag
+        run: |
+          sed -i "s/tag:.*/tag: ${{ github.run_number }}/" ./auth-chart/values.yaml
+
+# NOTE: This local test workflow intentionally does NOT commit/push the values.yaml update.
+# That avoids the workflow trying to push changes back to your GitHub remote during local tests.

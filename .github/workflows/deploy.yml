@@ -1,0 +1,36 @@
+name: Build & Deploy (Local GitOps)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "auth-service/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t localhost:5001/auth-service:${{ github.run_number }} ./auth-service
+
+      - name: Push to local registry
+        run: |
+          docker push localhost:5001/auth-service:${{ github.run_number }}
+
+      - name: Bump Helm chart image tag
+        run: |
+          sed -i "s/tag:.*/tag: ${{ github.run_number }}/" ./auth-chart/values.yaml
+
+      - name: Commit & push Helm chart update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add ./auth-chart/values.yaml
+          git commit -m "Update image tag to ${{ github.run_number }}"
+          git push
