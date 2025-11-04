@@ -24,11 +24,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/Andreliar/auth-service:${{ github.run_number }} ./auth-service
+          docker build -t ghcr.io/andreliar/auth-service:${{ github.run_number }} ./auth-service
 
       - name: Push to GitHub Container Registry
         run: |
-          docker push ghcr.io/Andreliar/auth-service:${{ github.run_number }}
+          docker push ghcr.io/andreliar/auth-service:${{ github.run_number }}
 
       - name: Bump Helm chart image tag
         run: |

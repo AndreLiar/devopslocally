@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: ghcr.io/Andreliar/auth-service
+  repository: ghcr.io/andreliar/auth-service
   pullPolicy: IfNotPresent
   tag: main
 service:
