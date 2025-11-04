@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/andreliar/auth-service
   pullPolicy: IfNotPresent
-  tag: main
+  tag: 7
 serviceAccount:
   create: true
   annotations: {}
