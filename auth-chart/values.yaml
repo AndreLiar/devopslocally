@@ -3,6 +3,10 @@ image:
   repository: ghcr.io/andreliar/auth-service
   pullPolicy: IfNotPresent
   tag: main
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
 service:
   type: ClusterIP
   port: 3000
