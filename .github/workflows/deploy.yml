@@ -15,17 +15,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
         run: |
-          docker build -t localhost:5001/auth-service:${{ github.run_number }} ./auth-service
+          docker build -t ghcr.io/Andreliar/auth-service:${{ github.run_number }} ./auth-service
 
-      - name: Push to local registry
+      - name: Push to GitHub Container Registry
         run: |
-          docker push localhost:5001/auth-service:${{ github.run_number }}
+          docker push ghcr.io/Andreliar/auth-service:${{ github.run_number }}
 
       - name: Bump Helm chart image tag
         run: |
-          sed -i "s/tag:.*/tag: ${{ github.run_number }}/" ./auth-chart/values.yaml
+          sed -i "s|tag:.*|tag: ${{ github.run_number }}|" ./auth-chart/values.yaml
 
       - name: Commit & push Helm chart update
         run: |
