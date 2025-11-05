@@ -20,6 +20,9 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: []
+httpRoute:
+  enabled: false
+  host: chart-example.local
 resources: {}
 
 affinity: {}
