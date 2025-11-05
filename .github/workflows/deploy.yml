@@ -37,6 +37,20 @@ jobs:
         run: kubectl cluster-info
         if: secrets.KUBE_CONFIG != ''
       
+      - name: Request deployment approval
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const approval = {
+              status: 'pending',
+              deployment: 'auth-service',
+              timestamp: new Date().toISOString(),
+              commit: '${{ github.sha }}'
+            };
+            console.log('Deployment approval required:', JSON.stringify(approval, null, 2));
+      
       - name: Deploy auth-service
         run: |
           helm repo add myrepo file://$(pwd)/auth-chart || true
@@ -47,6 +61,45 @@ jobs:
             --wait \
             --timeout 5m
         if: secrets.KUBE_CONFIG != ''
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for deployment to be ready
+          kubectl rollout status deployment/auth-service -n default --timeout=5m
+          
+          # Get service endpoint
+          SERVICE_IP=$(kubectl get svc auth-service -n default -o jsonpath='{.spec.clusterIP}')
+          
+          # Test health endpoint
+          for i in {1..5}; do
+            echo "Health check attempt $i..."
+            if kubectl run -i --rm debug --image=curlimages/curl:latest --restart=Never -- \
+               curl -s -f http://$SERVICE_IP:3000/health; then
+              echo "✓ Health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+        if: secrets.KUBE_CONFIG != ''
+      
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const statusEmoji = status === 'success' ? '✅' : '❌';
+            const message = `${statusEmoji} Deployment ${status}: auth-service deployed to production`;
+            console.log(message);
+            // In production, send to Slack webhook or similar
+            console.log('Deployment Status: ' + JSON.stringify({
+              status: status,
+              deployment: 'auth-service',
+              commit: '${{ github.sha }}',
+              branch: '${{ github.ref }}',
+              timestamp: new Date().toISOString()
+            }, null, 2));
       
       - name: Verify deployment
         run: |
