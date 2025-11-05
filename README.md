@@ -24,6 +24,377 @@ This template includes a **complete, production-ready infrastructure** pre-confi
 
 ---
 
+## 🛠️ Infrastructure Setup & Deployment
+
+### Prerequisites
+
+Before deploying infrastructure, ensure you have:
+
+```bash
+# Check if you have these installed
+kubectl version          # Kubernetes CLI
+helm version             # Kubernetes package manager
+docker version           # Container runtime
+git version              # Version control
+
+# Recommended versions
+kubectl: v1.24+
+helm: v3.10+
+docker: 20.10+
+```
+
+**Setup Options:**
+- **Local Development**: Docker Desktop (Mac/Windows) + Kubernetes, or Minikube/Kind
+- **Cloud Environments**: EKS (AWS), GKE (Google Cloud), AKS (Azure)
+
+---
+
+### Phase 1️⃣: Create Kubernetes Cluster
+
+Choose one option below:
+
+#### Option A: Docker Desktop (Easiest - Mac/Windows)
+
+```bash
+# 1. Install Docker Desktop from https://www.docker.com/products/docker-desktop
+
+# 2. Enable Kubernetes
+# Go to Docker Desktop → Preferences/Settings → Kubernetes
+# Click "Enable Kubernetes" and wait for it to start
+
+# 3. Verify cluster is running
+kubectl cluster-info
+kubectl get nodes
+```
+
+#### Option B: Minikube (Linux/Mac/Windows)
+
+```bash
+# 1. Install Minikube from https://minikube.sigs.k8s.io/
+
+# 2. Start Minikube cluster
+minikube start --cpus=4 --memory=8192 --disk-size=50g
+
+# 3. Enable ingress addon (needed for this template)
+minikube addons enable ingress
+
+# 4. Verify cluster
+minikube status
+kubectl get nodes
+```
+
+#### Option C: Kind (Lightweight - Linux/Mac/Windows)
+
+```bash
+# 1. Install Kind from https://kind.sigs.k8s.io/
+
+# 2. Create Kind cluster
+kind create cluster --name devops-cluster
+
+# 3. Enable ingress (optional but recommended)
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+# 4. Verify cluster
+kind get clusters
+kubectl get nodes
+```
+
+#### Option D: Cloud (AWS EKS, Google GKE, Azure AKS)
+
+```bash
+# AWS EKS Example
+aws eks create-cluster \
+  --name devops-cluster \
+  --version 1.27 \
+  --role-arn arn:aws:iam::ACCOUNT_ID:role/eks-service-role \
+  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy
+
+# Then update kubeconfig
+aws eks update-kubeconfig --name devops-cluster
+
+# Verify
+kubectl cluster-info
+```
+
+---
+
+### Phase 2️⃣: Add Helm Repositories
+
+Helm is Kubernetes' package manager. Add the required repositories:
+
+```bash
+# Add Helm repositories for our infrastructure components
+helm repo add stable https://charts.helm.sh/stable
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add argocd https://argoproj.github.io/argo-helm
+helm repo add loki https://grafana.github.io/loki/charts
+
+# Update Helm cache
+helm repo update
+
+# Verify repos are added
+helm repo list
+```
+
+---
+
+### Phase 3️⃣: Create Namespaces
+
+Kubernetes namespaces isolate resources. Create your multi-environment namespaces:
+
+```bash
+# Create namespaces for 3 environments
+kubectl create namespace dev
+kubectl create namespace staging
+kubectl create namespace production
+
+# Create namespace for infrastructure (ArgoCD, monitoring)
+kubectl create namespace argocd
+kubectl create namespace monitoring
+
+# Verify all namespaces
+kubectl get namespaces
+```
+
+Expected output:
+```
+NAME              STATUS   AGE
+default           Active   1m
+dev               Active   30s
+staging           Active   30s
+production        Active   30s
+argocd            Active   30s
+monitoring        Active   30s
+```
+
+---
+
+### Phase 4️⃣: Deploy ArgoCD (GitOps Engine)
+
+ArgoCD automatically deploys your applications based on Git changes:
+
+```bash
+# 1. Create ArgoCD namespace (if not done above)
+kubectl create namespace argocd
+
+# 2. Install ArgoCD using Helm
+helm install argocd argocd/argo-cd \
+  --namespace argocd \
+  --set server.service.type=NodePort
+
+# 3. Wait for ArgoCD to be ready (~1-2 minutes)
+kubectl wait --for=condition=Ready pod \
+  -l app.kubernetes.io/name=argocd-server \
+  -n argocd \
+  --timeout=300s
+
+# 4. Verify ArgoCD is running
+kubectl get pods -n argocd
+
+# 5. Get ArgoCD admin password
+kubectl get secret argocd-initial-admin-secret \
+  -n argocd \
+  -o jsonpath="{.data.password}" | base64 -d
+
+# 6. Access ArgoCD dashboard
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+
+# Open: https://localhost:8080
+# Login: admin / [password from step 5]
+```
+
+---
+
+### Phase 5️⃣: Deploy Prometheus (Metrics Collection)
+
+Prometheus scrapes metrics from your cluster:
+
+```bash
+# 1. Install kube-prometheus-stack (Prometheus + Grafana + Alerts)
+helm install kube-prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --create-namespace
+
+# 2. Wait for pods to be ready
+kubectl wait --for=condition=Ready pod \
+  -l release=kube-prometheus \
+  -n monitoring \
+  --timeout=300s
+
+# 3. Verify Prometheus is running
+kubectl get pods -n monitoring
+
+# 4. Port forward to Prometheus
+kubectl port-forward svc/kube-prometheus-prometheus -n monitoring 9090:9090 &
+
+# Open: http://localhost:9090
+# You can query metrics here (try: up)
+```
+
+---
+
+### Phase 6️⃣: Deploy Grafana (Dashboards & Visualization)
+
+Grafana displays your metrics with beautiful dashboards:
+
+```bash
+# 1. Get Grafana admin password (set by kube-prometheus-stack)
+kubectl get secret kube-prometheus-grafana \
+  -n monitoring \
+  -o jsonpath="{.data.admin-password}" | base64 -d
+
+# 2. Port forward to Grafana
+kubectl port-forward svc/kube-prometheus-grafana -n monitoring 3000:80 &
+
+# Open: http://localhost:3000
+# Login: admin / [password from step 1]
+
+# 3. Verify data sources
+# Settings (⚙️) → Data Sources
+# You should see "Prometheus" already configured
+```
+
+**Optional: Import Popular Dashboards**
+```bash
+# In Grafana UI:
+# Click "Dashboards" → "Import"
+# Enter ID: 1860 (Node Exporter Full)
+# Select Prometheus data source
+# Click "Import"
+
+# Useful dashboard IDs:
+# 6417  - Kubernetes Cluster Monitoring
+# 1860  - Node Exporter Full
+# 8588  - Kubernetes Deployment Statefulset Daemonset Workload Status
+```
+
+---
+
+### Phase 7️⃣: Deploy Loki (Log Aggregation)
+
+Loki collects logs from all your pods:
+
+```bash
+# 1. Install Loki + Promtail
+helm install loki grafana/loki-stack \
+  --namespace monitoring
+
+# 2. Wait for Loki to be ready
+kubectl wait --for=condition=Ready pod \
+  -l app=loki \
+  -n monitoring \
+  --timeout=300s
+
+# 3. Verify Loki is running
+kubectl get pods -n monitoring | grep loki
+
+# 4. Add Loki as data source in Grafana
+# Settings (⚙️) → Data Sources → Add
+# Name: Loki
+# URL: http://loki:3100
+# Click "Save & Test"
+
+# 5. Query logs in Grafana
+# Explore → Select Loki
+# Try: {namespace="dev"}
+# You'll see all logs from dev namespace
+```
+
+---
+
+### Phase 8️⃣: Setup Multi-Environment Network Policies (Optional)
+
+Isolate your environments from each other:
+
+```bash
+# Create network policy to isolate namespaces
+cat <<EOF | kubectl apply -f -
+---
+# Deny all traffic between namespaces by default
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: dev
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: staging
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: production
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+EOF
+
+# Verify policies
+kubectl get networkpolicies -n dev
+kubectl get networkpolicies -n staging
+kubectl get networkpolicies -n production
+```
+
+---
+
+### ✅ Verification Checklist
+
+After deployment, verify everything is working:
+
+```bash
+# 1. Check all namespaces exist
+kubectl get namespaces
+# Expected: dev, staging, production, argocd, monitoring
+
+# 2. Check ArgoCD is running
+kubectl get pods -n argocd
+# Expected: ~5 ArgoCD pods in Running state
+
+# 3. Check Prometheus is running
+kubectl get pods -n monitoring | grep prometheus
+# Expected: prometheus pod in Running state
+
+# 4. Check Grafana is running
+kubectl get pods -n monitoring | grep grafana
+# Expected: grafana pod in Running state
+
+# 5. Check Loki is running
+kubectl get pods -n monitoring | grep loki
+# Expected: loki pod in Running state
+
+# 6. Verify all services are accessible
+kubectl get svc -n argocd
+kubectl get svc -n monitoring
+
+# 7. Test ArgoCD dashboard
+# http://localhost:8080 (admin password ready)
+
+# 8. Test Grafana dashboard
+# http://localhost:3000 (admin password ready)
+
+# 9. Test Prometheus
+# http://localhost:9090 (metrics page ready)
+```
+
+---
+
 ## ⚡ Quick Start (5 Minutes to GitOps)
 
 ### What You Need to Provide
