@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "auth-chart.fullname" . }}-config
+  labels:
+    {{- include "auth-chart.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  NODE_ENV: {{ .Values.config.environment | quote }}
+  
+  # Database configuration
+  {{- if .Values.postgresql.enabled }}
+  DATABASE_HOST: {{ .Release.Name }}-postgresql
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: {{ .Values.postgresql.auth.database | quote }}
+  {{- end }}
+  
+  # Redis configuration
+  {{- if .Values.redis.enabled }}
+  REDIS_HOST: {{ .Release.Name }}-redis-master
+  REDIS_PORT: "6379"
+  {{- end }}
+  
+  # Service configuration
+  PORT: {{ .Values.service.port | quote }}
+  {{- if .Values.config.apiUrl }}
+  API_URL: {{ .Values.config.apiUrl | quote }}
+  {{- end }}
+  
+  # Monitoring
+  PROMETHEUS_ENABLED: {{ .Values.monitoring.enabled | quote }}
