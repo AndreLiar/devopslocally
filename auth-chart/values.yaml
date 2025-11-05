@@ -3,6 +3,8 @@ image:
   repository: ghcr.io/andreliar/auth-service
   pullPolicy: IfNotPresent
   tag: 10
+imagePullSecrets:
+  - name: ghcr-login-secret
 serviceAccount:
   create: true
   annotations: {}
