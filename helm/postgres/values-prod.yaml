@@ -1,0 +1,36 @@
+# PostgreSQL Production Environment Values
+
+replicaCount: 2
+
+image:
+  repository: postgres
+  tag: "14-alpine"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+
+persistence:
+  enabled: true
+  size: 50Gi
+  storageClassName: fast-ssd
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 30  # days
+
+replication:
+  enabled: true
+  replicas: 1
+
+highAvailability:
+  enabled: true
+
+monitoring:
+  enabled: true
+  scrapeInterval: 10s

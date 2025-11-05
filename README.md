@@ -139,8 +139,9 @@ make destroy                        # Delete all Kubernetes resources
 ./tests/test-phase2-integration.sh  # Validate all Phase 2 features
 
 # Database Operations (NEW!)
-helm install postgres postgres-chart/          # Deploy PostgreSQL
-kubectl port-forward svc/postgresql 5432:5432  # Access database
+helm install postgres helm/postgres/                                    # Deploy PostgreSQL (dev)
+helm install postgres helm/postgres/ -f helm/postgres/values-prod.yaml # Deploy PostgreSQL (prod)
+kubectl port-forward svc/postgresql 5432:5432                           # Access database
 ```
 
 ---
@@ -166,13 +167,23 @@ devopslocally/
 │   │   ├── package.json            ← Dependencies
 │   │   └── Dockerfile              ← Container image
 │   │
-│   └── auth-chart/                  ← Helm chart for deployment
-│       ├── Chart.yaml
-│       ├── values.yaml              ← Configuration
-│       └── templates/               ← K8s manifests
-│           ├── deployment.yaml
-│           ├── service.yaml
-│           └── ...
+│   └── helm/                         ← Helm charts (reorganized)
+│       ├── auth-service/            ← Auth service chart
+│       │   ├── Chart.yaml
+│       │   ├── values.yaml          ← Base configuration
+│       │   ├── values-dev.yaml      ← Dev overrides
+│       │   ├── values-staging.yaml  ← Staging overrides
+│       │   ├── values-prod.yaml     ← Production overrides
+│       │   └── templates/           ← K8s manifests
+│       │
+│       ├── postgres/                ← Database chart
+│       │   ├── Chart.yaml
+│       │   ├── values.yaml
+│       │   ├── values-dev.yaml
+│       │   ├── values-prod.yaml
+│       │   └── templates/
+│       │
+│       └── README.md                ← Helm documentation
 │
 ├── 🔄 CI/CD
 │   └── .github/workflows/
@@ -470,7 +481,7 @@ kubectl get hpa
 
 ### Resource Limits
 
-Edit `auth-chart/values.yaml`:
+Edit `helm/auth-service/values.yaml` (or environment-specific: `values-prod.yaml`):
 
 ```yaml
 resources:
@@ -483,6 +494,8 @@ resources:
 ```
 
 ### Horizontal Pod Autoscaling
+
+Configure in `helm/auth-service/values.yaml` or override in environment files:
 
 ```yaml
 autoscaling:

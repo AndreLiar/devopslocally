@@ -148,7 +148,7 @@ cmd_create_service() {
 cmd_deploy() {
   echo -e "${BLUE}Deploying services...${NC}"
   cd "$PROJECT_ROOT"
-  helm upgrade --install auth auth-chart/ -n default --wait
+  helm upgrade --install auth helm/auth-service/ -n default --wait
   echo -e "${GREEN}✓ Deployment complete${NC}"
 }
 

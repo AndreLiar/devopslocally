@@ -1,0 +1,56 @@
+# Development Environment Values
+# Override these for local/dev cluster deployments
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/andreliar/auth-service
+  pullPolicy: Always  # Always pull in dev for latest changes
+  tag: dev-latest
+
+config:
+  logLevel: debug  # More verbose logging in dev
+  environment: development
+  apiUrl: "http://localhost:3000"
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# Disable autoscaling in dev
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+
+# Minimal resources for dev
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 250m
+    memory: 128Mi
+
+# Health checks less strict in dev
+livenessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# Disable ingress by default in dev
+ingress:
+  enabled: false
+
+# Monitoring enabled but relaxed thresholds
+monitoring:
+  enabled: true
+  scrapeInterval: 30s
+
+# Pod Disruption Budget relaxed in dev
+podDisruptionBudget:
+  enabled: false

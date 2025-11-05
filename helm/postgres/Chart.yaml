@@ -1,0 +1,16 @@
+apiVersion: v2
+name: postgres
+description: PostgreSQL database deployment for DevOps project
+type: application
+version: 1.0.0
+appVersion: "15"
+home: https://www.postgresql.org/
+sources:
+  - https://github.com/AndreLiar/devopslocally
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+keywords:
+  - postgresql
+  - database
+  - sql

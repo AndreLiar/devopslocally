@@ -51,10 +51,10 @@ jobs:
       
       - name: Deploy auth-service
         run: |
-          helm repo add myrepo file://$(pwd)/auth-chart || true
-          helm upgrade --install auth-service auth-chart/ \
+          helm repo add myrepo file://$(pwd)/helm/auth-service || true
+          helm upgrade --install auth-service helm/auth-service/ \
             --namespace default \
-            --values auth-chart/values.yaml \
+            --values helm/auth-service/values.yaml \
             --set image.tag=sha-${{ github.sha }} \
             --wait \
             --timeout 5m

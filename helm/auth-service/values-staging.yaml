@@ -1,0 +1,78 @@
+# Staging Environment Values
+# Override these for staging cluster deployments
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/andreliar/auth-service
+  pullPolicy: IfNotPresent
+  tag: staging-latest
+
+config:
+  logLevel: info
+  environment: staging
+  apiUrl: "https://staging-api.example.com"
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# Moderate autoscaling for staging
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Moderate resources for staging
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 500m
+    memory: 256Mi
+
+# Health checks standard
+livenessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+# Enable ingress in staging
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: staging-auth.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: staging-auth-tls
+      hosts:
+        - staging-auth.example.com
+
+# Monitoring enabled with standard settings
+monitoring:
+  enabled: true
+  scrapeInterval: 15s
+
+# Pod Disruption Budget enabled
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network policies stricter in staging
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress

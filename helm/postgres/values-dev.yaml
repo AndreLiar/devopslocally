@@ -1,0 +1,26 @@
+# PostgreSQL Development Environment Values
+
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "14-alpine"
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: standard
+
+backup:
+  enabled: false
+
+replication:
+  enabled: false
