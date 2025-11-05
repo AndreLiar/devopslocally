@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/andreliar/auth-service
   pullPolicy: IfNotPresent
-  tag: 10
+  tag: 11
 imagePullSecrets:
   - name: ghcr-login-secret
 serviceAccount:
