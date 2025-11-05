@@ -59,7 +59,24 @@ A **complete, automated DevOps infrastructure template** for deploying microserv
 
 ### Step 1: Prerequisites Check
 
-Verify you have all required tools installed:
+**Option A: Automated Check (Recommended)**
+
+Run the comprehensive prerequisite checker:
+
+```bash
+./scripts/check-prerequisites.sh
+```
+
+This script automatically verifies:
+- ✅ kubectl (Kubernetes CLI) installation & cluster connectivity
+- ✅ Helm 3+ (Package manager) installation
+- ✅ Docker installation & daemon status
+- ✅ Git installation & configuration
+- ✅ System information & requirements
+
+**Option B: Manual Check**
+
+If you prefer manual verification:
 
 ```bash
 # Kubernetes: Check your cluster
@@ -241,9 +258,12 @@ kubectl port-forward svc/postgresql 5432:5432                           # Access
 
 ## 📚 Essential Commands
 
-### � Setup & Configuration Commands
+### 🎯 Setup & Configuration Commands
 
 ```bash
+# ⭐ CHECK PREREQUISITES FIRST (Automated)
+./scripts/check-prerequisites.sh
+
 # One-click infrastructure setup (do this first!)
 make setup
 

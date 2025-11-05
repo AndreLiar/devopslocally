@@ -1,4 +1,4 @@
-.PHONY: help setup deploy logs test clean build push port-forward status destroy
+.PHONY: help setup deploy logs test clean build push port-forward status destroy check-prerequisites
 
 # Colors
 BLUE := \033[0;34m
@@ -22,6 +22,10 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
+
+check-prerequisites: ## Check all prerequisites (kubectl, helm, docker, git)
+	@echo -e "$(BLUE)✅ Checking prerequisites...$(NC)"
+	@$(SCRIPTS_DIR)/check-prerequisites.sh
 
 setup: ## One-click infrastructure setup
 	@echo -e "$(BLUE)🚀 Starting one-click setup...$(NC)"

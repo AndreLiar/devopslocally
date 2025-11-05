@@ -8,10 +8,11 @@
 
 **First time with this project?**
 
-1. **5 minutes:** `README.md` - Overview and key features
-2. **10 minutes:** `START_HERE.md` - Quick orientation
-3. **20 minutes:** `SETUP_SEQUENCE.md` - Read Phase 0-4
-4. **Then run:** `./scripts/setup-cluster.sh`
+1. **5 minutes:** Run prerequisite check: `./scripts/check-prerequisites.sh` or `make check-prerequisites`
+2. **5 minutes:** `README.md` - Overview and key features
+3. **10 minutes:** `START_HERE.md` - Quick orientation
+4. **20 minutes:** `SETUP_SEQUENCE.md` - Read Phase 0-4
+5. **Then run:** `./scripts/setup.sh` or `make setup`
 
 ---
 
@@ -269,10 +270,11 @@ docs/
 ### Scripts
 ```
 scripts/
-├── setup-cluster.sh                → Phase 1 automation
-├── multi-env-manager.sh            → Phase 2 automation
-├── setup-argocd.sh                 → Phase 3 automation
-└── setup.sh                        → Quick wrapper
+├── check-prerequisites.sh       → Verify all tools are installed (NEW!)
+├── setup.sh                     → Quick wrapper for setup
+├── setup-cluster.sh             → Phase 1 automation
+├── multi-env-manager.sh         → Phase 2 automation
+└── setup-argocd.sh              → Phase 3 automation
 ```
 
 ---
