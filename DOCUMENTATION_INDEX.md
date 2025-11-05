@@ -1,6 +1,16 @@
 # 🗺️ DOCUMENTATION NAVIGATION MAP
 
-**Quick reference to find exactly what you need, when you need it**
+**Quick reference to find exactly what you need, when you need it.**
+
+---
+
+## ✨ NEW: Cleaner Documentation Structure
+
+We've reorganized documentation to eliminate confusion:
+- ✅ **23 files archived** (legacy, duplicates, status reports)
+- ✅ **Only 17 active files** (current, essential guides)
+- ✅ **Clear navigation path** (no more wondering what to read)
+- ✅ **Old files preserved** (see `docs/archived/` if needed)
 
 ---
 
@@ -12,92 +22,286 @@
    - Step-by-step instructions after cloning
    - Tells you exactly what files to read in order
    - Timeline for first 30 minutes
-   - Quick answer: prerequisites → START_HERE → SETUP_SEQUENCE → setup.sh → DEVELOPER_GUIDE
+   - Next steps: prerequisites → setup → development
 
 ---
 
-## 🚀 START HERE
+## 🚀 QUICK START PATH
 
-**First time with this project?**
+**Follow this sequence in order:**
 
-1. **5 minutes:** Run prerequisite check: `./scripts/check-prerequisites.sh` or `make check-prerequisites`
-2. **5 minutes:** `README.md` - Overview and key features
-3. **10 minutes:** `START_HERE.md` - Quick orientation
-4. **20 minutes:** `SETUP_SEQUENCE.md` - Read Phase 0-4
-5. **Then run:** `./scripts/setup.sh` or `make setup`
+1. **5 minutes:** Run prerequisite check
+   ```bash
+   ./scripts/check-prerequisites.sh
+   # or
+   make check-prerequisites
+   ```
+
+2. **5 minutes:** Read `README.md` - Overview and features
+
+3. **10 minutes:** Read `POST_CLONE_GUIDE.md` - What to do next
+
+4. **20 minutes:** Read `SETUP_SEQUENCE.md` - Understand setup phases
+
+5. **10-15 minutes:** Run setup
+   ```bash
+   make setup
+   # or
+   ./scripts/setup.sh
+   ```
+
+6. **Then:** Reference `DOCUMENTATION_INDEX.md` (this file) to find specific guides
 
 ---
 
-## 📖 DOCUMENTATION BY AUDIENCE
+## � ACTIVE DOCUMENTATION (17 Files)
 
-### 👨‍💼 For Project Managers / Team Leads
+### Root Level (4 Essential Files)
 
-Start with these:
-1. `README.md` - Project overview
-2. `docs/ARCHITECTURE.md` - System design (5 min read)
-3. `PROJECT_STATUS.md` - Current status and timeline
-4. `COMPLETION_REPORT.md` - What's been delivered
+| File | Purpose | Read Time |
+|------|---------|-----------|
+| `README.md` | Project overview & features | 5-10 min |
+| `POST_CLONE_GUIDE.md` | After cloning, what to do | 5 min |
+| `SETUP_SEQUENCE.md` | Detailed setup phases | 20 min |
+| `DOCUMENTATION_INDEX.md` | Navigation map (this file) | 5 min |
 
-**Key Files:**
-- `docs/COST_OPTIMIZATION.md` - Budget and efficiency
-- `docs/SECURITY.md` - Security measures
-- `docs/RUNBOOKS.md` - Operational procedures
+### docs/ Folder (13 Active Guides)
+
+| File | Purpose | Audience | Read Time |
+|------|---------|----------|-----------|
+| `ARCHITECTURE.md` | System design & components | All | 20 min |
+| `DEVELOPER_GUIDE.md` | Daily development workflows | Developers | 30 min |
+| `GITOPS_PIPELINE.md` | GitOps & deployment process | Developers/DevOps | 15 min |
+| `TROUBLESHOOTING.md` | Problem solving & fixes | All | 10-20 min |
+| `MONITORING_SETUP.md` | Observability & metrics | DevOps | 20 min |
+| `RUNBOOKS.md` | Standard operations | DevOps | 15 min |
+| `SECURITY.md` | RBAC, secrets, hardening | DevOps | 20 min |
+| `MULTI_ENVIRONMENT_SETUP.md` | Dev/Staging/Prod setup | DevOps | 20 min |
+| `ENVIRONMENT_QUICK_REFERENCE.md` | Command cheat sheet | All | 5 min |
+| `COST_OPTIMIZATION.md` | Budget & efficiency | Managers/DevOps | 10 min |
+| `WINDOWS_WSL2_SETUP.md` | Windows setup guide | Windows users | 10 min |
+| `DEVELOPER_README.md` | Developer orientation | Developers | 10 min |
+| `QUICK_START.md` | Quick common tasks | All | 5-10 min |
 
 ---
 
-### 👨‍💻 For Developers (First Time)
+## 📖 DOCUMENTATION BY ROLE
+
+### 👨‍💼 Project Managers / Team Leads
+
+**Start with:**
+1. `README.md` (5 min) - What is this?
+2. `docs/ARCHITECTURE.md` (20 min) - How does it work?
+
+**Then read:**
+- `docs/COST_OPTIMIZATION.md` - Budget considerations
+- `docs/SECURITY.md` - Security posture
+
+**Reference:**
+- `SETUP_SEQUENCE.md` - Understand timeline
+- `DOCUMENTATION_INDEX.md` (this file) - Find anything
+
+---
+
+### 👨‍💻 Developers (First Time)
 
 **Must Read (In Order):**
-1. `README.md` (5 min) - Overview
-2. `SETUP_SEQUENCE.md` (30 min) - Read Phase 0-6
-3. `DEVELOPER_QUICK_START.sh` (5 min visual guide)
-4. `DEVELOPER_README.md` (10 min) - Day-to-day workflows
-5. `docs/DEVELOPER_GUIDE.md` (20 min) - Complete handbook
+1. `README.md` (5 min)
+2. `POST_CLONE_GUIDE.md` (5 min)
+3. `SETUP_SEQUENCE.md` (20 min)
+4. `docs/DEVELOPER_GUIDE.md` (30 min)
 
-**Then Run Setup:**
+**Then Run:**
 ```bash
-./scripts/setup-cluster.sh          # Phase 1
-./scripts/multi-env-manager.sh setup # Phase 2
-./scripts/setup-argocd.sh install    # Phase 3
+make check-prerequisites
+make setup
 ```
 
-**After Setup, Read:**
-- `docs/GITOPS_PIPELINE.md` - How deployment works
-- `docs/MULTI_ENVIRONMENT_SETUP.md` - Dev/Staging/Prod
-- `DEVELOPER_GUIDE.md` - Complete development guide
+**After Setup:**
+- `docs/GITOPS_PIPELINE.md` - How deployments work
+- `docs/MULTI_ENVIRONMENT_SETUP.md` - Multi-env config
+- `docs/TROUBLESHOOTING.md` - Common issues
 
 ---
 
-### 👨‍💻 For Developers (Daily Work)
+### 👨‍💻 Developers (Daily Work)
 
 **Quick Reference:**
 - `docs/ENVIRONMENT_QUICK_REFERENCE.md` - Command cheat sheet
-- `docs/QUICK_START.md` - Common tasks
 - `docs/TROUBLESHOOTING.md` - Problem solving
 - `docs/RUNBOOKS.md` - Standard operations
 
-**Specific Tasks:**
-- **"How do I deploy?"** → `docs/GITOPS_PIPELINE.md`
-- **"How do I check logs?"** → `docs/TROUBLESHOOTING.md`
-- **"How do I fix a failed deployment?"** → `docs/RUNBOOKS.md`
-- **"How do I monitor my service?"** → `docs/MONITORING_SETUP.md`
-- **"How do I rollback?"** → `DEVELOPER_GUIDE.md` (Section: Rollback)
+**Specific Questions:**
+
+| Question | Answer Location |
+|----------|-----------------|
+| "How do I deploy?" | `docs/GITOPS_PIPELINE.md` |
+| "How do I check logs?" | `docs/TROUBLESHOOTING.md` |
+| "How do I debug?" | `docs/TROUBLESHOOTING.md` |
+| "How do I monitor?" | `docs/MONITORING_SETUP.md` |
+| "How do I create a service?" | `docs/DEVELOPER_GUIDE.md` |
+| "How do I rollback?" | `docs/RUNBOOKS.md` |
+| "Commands?" | `docs/ENVIRONMENT_QUICK_REFERENCE.md` |
 
 ---
 
-### 🏗️ For DevOps / Infrastructure Engineers
+### 🏗️ DevOps / Infrastructure Engineers
 
 **Must Read (In Order):**
-1. `docs/ARCHITECTURE.md` - System design
-2. `SETUP_SEQUENCE.md` - Complete Phase 0-12
-3. `docs/AUTOMATED_SETUP_GUIDE.md` - Setup internals
-4. `docs/MULTI_ENV_IMPLEMENTATION.md` - Environment config
+1. `docs/ARCHITECTURE.md` (20 min)
+2. `SETUP_SEQUENCE.md` (20 min)
+3. `docs/MULTI_ENVIRONMENT_SETUP.md` (20 min)
 
-**Configuration Guides:**
-- `docs/ARGOCD_SETUP_GUIDE.md` - GitOps setup
-- `docs/MONITORING_SETUP.md` - Metrics and logging
-- `docs/SECURITY.md` - RBAC and secrets
-- `docs/PERFORMANCE.md` - Scaling and optimization
+**Setup & Configuration:**
+- `docs/MONITORING_SETUP.md` - Observability
+- `docs/SECURITY.md` - RBAC & secrets
+- `docs/COST_OPTIMIZATION.md` - Optimization
+
+**Operations:**
+- `docs/RUNBOOKS.md` - Standard procedures
+- `docs/TROUBLESHOOTING.md` - Problem solving
+- `docs/GITOPS_PIPELINE.md` - Deployment process
+
+**Reference:**
+- `docs/ENVIRONMENT_QUICK_REFERENCE.md` - Commands
+- `DOCUMENTATION_INDEX.md` (this file)
+
+---
+
+### 🪟 Windows Users
+
+**Setup Guide:**
+- `docs/WINDOWS_WSL2_SETUP.md` - Complete Windows setup
+
+**Then follow:**
+- `POST_CLONE_GUIDE.md`
+- `SETUP_SEQUENCE.md`
+- Role-specific guides above
+
+---
+
+## 🔍 FIND BY TOPIC
+
+### Deployment & GitOps
+- `docs/GITOPS_PIPELINE.md` - How deployments work
+- `docs/MULTI_ENVIRONMENT_SETUP.md` - Multi-environment setup
+- `SETUP_SEQUENCE.md` - Initial setup phases
+
+### Monitoring & Observability
+- `docs/MONITORING_SETUP.md` - Prometheus, Grafana, Loki setup
+- `docs/ENVIRONMENT_QUICK_REFERENCE.md` - Monitoring commands
+
+### Security
+- `docs/SECURITY.md` - RBAC, secrets, hardening
+- `docs/ARCHITECTURE.md` - Security architecture
+
+### Troubleshooting
+- `docs/TROUBLESHOOTING.md` - Common issues & fixes
+- `docs/RUNBOOKS.md` - Step-by-step procedures
+- `docs/ENVIRONMENT_QUICK_REFERENCE.md` - Debugging commands
+
+### Development
+- `docs/DEVELOPER_GUIDE.md` - Complete developer handbook
+- `docs/GITOPS_PIPELINE.md` - Deployment workflows
+- `docs/QUICK_START.md` - Quick common tasks
+
+### System Design
+- `docs/ARCHITECTURE.md` - System design & components
+- `docs/COST_OPTIMIZATION.md` - Budget optimization
+- README.md - Project overview
+
+### Setup & Configuration
+- `SETUP_SEQUENCE.md` - Step-by-step setup
+- `POST_CLONE_GUIDE.md` - After cloning
+- `docs/MULTI_ENVIRONMENT_SETUP.md` - Multi-env config
+
+---
+
+## 📦 ARCHIVED DOCUMENTATION
+
+**23 files archived in `docs/archived/`** to keep current docs clean:
+
+These include:
+- Legacy status reports (MONITORING_STATUS.md, etc.)
+- Duplicate guides (AUTOMATED_SETUP_GUIDE.md, etc.)
+- Phase-specific guides (PHASE2_GUIDE.md, PHASE3_GUIDE.md)
+- Bug fix documentation (LOKI_DATASOURCE_FIX.md, etc.)
+- One-time migration docs (HELM_MIGRATION.md)
+
+**When to use archived files:**
+- Looking for historical context
+- Needing old troubleshooting steps
+- Checking past status reports
+- Verifying previous solutions
+
+See `docs/archived/README.md` for complete list and explanations.
+
+---
+
+## 🎯 NAVIGATION TIPS
+
+**Lost?**
+1. Start with `POST_CLONE_GUIDE.md` (after cloning)
+2. Check "Find by Topic" above
+3. Look in archived/ if you need history
+
+**Not finding what you need?**
+1. Check role-specific section above
+2. Use "Find by Topic" search
+3. See `docs/archived/README.md` for archived files
+
+**Want to contribute?**
+1. Read `DEVELOPER_GUIDE.md` first
+2. See `CONTRIBUTING.md` (if exists)
+3. Follow active doc style from examples above
+
+---
+
+## ✅ ACTIVE VS ARCHIVED
+
+**ACTIVE FILES (currently used):**
+- ✅ Reference these for current information
+- ✅ Updated when things change
+- ✅ Easy to find, clearly organized
+- ✅ In root or docs/ folder
+
+**ARCHIVED FILES (historical):**
+- 📦 In `docs/archived/` folder
+- 📚 Preserved for reference
+- 📖 Use for historical context
+- ✋ Not actively maintained
+
+---
+
+## 📝 File Status Summary
+
+| Category | Count | Location | Purpose |
+|----------|-------|----------|---------|
+| **Essential** | 4 | Root | Entry, clone, setup, navigation |
+| **Guides** | 13 | docs/ | Detailed how-to's |
+| **Archived** | 23 | docs/archived/ | Historical reference |
+| **Total** | 40 | — | Complete documentation |
+
+---
+
+## 🚀 Quick Links
+
+- 🎯 **Just cloned?** → `POST_CLONE_GUIDE.md`
+- 🔧 **Setting up?** → `SETUP_SEQUENCE.md`
+- 👨‍💻 **Developing?** → `docs/DEVELOPER_GUIDE.md`
+- 🏗️ **Architecture?** → `docs/ARCHITECTURE.md`
+- 🚨 **Problems?** → `docs/TROUBLESHOOTING.md`
+- 💰 **Budget?** → `docs/COST_OPTIMIZATION.md`
+- 🔐 **Security?** → `docs/SECURITY.md`
+- 🪟 **Windows?** → `docs/WINDOWS_WSL2_SETUP.md`
+- 📝 **Commands?** → `docs/ENVIRONMENT_QUICK_REFERENCE.md`
+- 📚 **Everything?** → `DOCUMENTATION_INDEX.md` (you are here!)
+
+---
+
+**Last Updated:** November 5, 2025  
+**Status:** Clean & Organized (41 → 17 active files)  
+**Next:** Follow `POST_CLONE_GUIDE.md` to get started!
 
 **Operations:**
 - `docs/RUNBOOKS.md` - Standard runbooks

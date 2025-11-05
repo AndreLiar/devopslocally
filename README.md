@@ -145,9 +145,38 @@ make status
 
 ---
 
+## 📚 Documentation Structure (Clean & Organized)
+
+After cloning, follow this clear navigation path:
+
+```
+1. README.md (you're reading it!)
+   ↓
+2. POST_CLONE_GUIDE.md (step-by-step after cloning)
+   ↓
+3. SETUP_SEQUENCE.md (detailed setup phases)
+   ↓
+4. DOCUMENTATION_INDEX.md (find what you need)
+   ↓
+5. docs/ folder (specific guides for your role)
+   ├─ DEVELOPER_GUIDE.md (for developers)
+   ├─ ARCHITECTURE.md (for architects)
+   ├─ TROUBLESHOOTING.md (when things break)
+   ├─ ENVIRONMENT_QUICK_REFERENCE.md (cheat sheet)
+   └─ More in docs/ folder...
+```
+
+**💡 Quick Links:**
+- 🎯 **Just cloned?** → `POST_CLONE_GUIDE.md`
+- 🔧 **Setting up?** → `SETUP_SEQUENCE.md`
+- 👨‍💻 **Developing?** → `docs/DEVELOPER_GUIDE.md`
+- 🏗️ **Architecture?** → `docs/ARCHITECTURE.md`
+- 🚨 **Troubleshooting?** → `docs/TROUBLESHOOTING.md`
+- 🗺️ **Lost?** → `DOCUMENTATION_INDEX.md`
+
 ---
 
-## �️ Project Structure
+## 🏗️ Project Structure
 
 ```
 devopslocally/
