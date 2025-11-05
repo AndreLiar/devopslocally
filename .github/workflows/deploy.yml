@@ -31,11 +31,9 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
-        if: secrets.KUBE_CONFIG != ''
       
       - name: Verify cluster connection
         run: kubectl cluster-info
-        if: secrets.KUBE_CONFIG != ''
       
       - name: Request deployment approval
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
@@ -60,7 +58,6 @@ jobs:
             --set image.tag=sha-${{ github.sha }} \
             --wait \
             --timeout 5m
-        if: secrets.KUBE_CONFIG != ''
       
       - name: Run smoke tests
         run: |
@@ -81,7 +78,6 @@ jobs:
             sleep 10
           done
           exit 1
-        if: secrets.KUBE_CONFIG != ''
       
       - name: Notify deployment status
         if: always()
@@ -105,7 +101,6 @@ jobs:
         run: |
           kubectl rollout status deployment/auth-service -n default --timeout=2m
           kubectl get pods -n default
-        if: secrets.KUBE_CONFIG != ''
       
       - name: Run smoke tests
         run: |
@@ -113,7 +108,6 @@ jobs:
           kubectl port-forward -n default svc/auth-service 3000:3000 &
           sleep 2
           curl -s http://localhost:3000/ || echo "Service not yet available"
-        if: secrets.KUBE_CONFIG != ''
 
   notify:
     name: Notify on Deployment
@@ -125,7 +119,7 @@ jobs:
       - name: Create Slack notification
         if: needs.deploy.result == 'success'
         run: |
-          echo "✅ Deployment successful: ${{ github.event.head_commit.message }}"
+          echo "✅ Deployment successful: ${{ github.event.workflow_run.head_commit.message || github.sha }}"
       
       - name: Deployment failed notification
         if: needs.deploy.result == 'failure'

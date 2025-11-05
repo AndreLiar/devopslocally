@@ -1,6 +1,6 @@
-{
-  "extends": ["@commitlint/config-conventional"],
-  "rules": {
+module.exports = {
+  extends: ["@commitlint/config-conventional"],
+  rules: {
     "type-enum": [
       2,
       "always",
@@ -27,4 +27,4 @@
       ["start-case", "pascal-case", "upper-case"]
     ]
   }
-}
+};
