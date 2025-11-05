@@ -4,6 +4,18 @@
 
 ---
 
+## 🎯 👉 START HERE FIRST
+
+**Just cloned the repo?**
+
+👉 **Read this first:** `POST_CLONE_GUIDE.md` (5 minutes)
+   - Step-by-step instructions after cloning
+   - Tells you exactly what files to read in order
+   - Timeline for first 30 minutes
+   - Quick answer: prerequisites → START_HERE → SETUP_SEQUENCE → setup.sh → DEVELOPER_GUIDE
+
+---
+
 ## 🚀 START HERE
 
 **First time with this project?**

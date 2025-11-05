@@ -4,9 +4,11 @@ A **complete, automated DevOps infrastructure template** for deploying microserv
 
 **⏱️ Get started in 5 minutes:** `./scripts/setup.sh`
 
+> **📍 Just cloned this repo?** → Read `POST_CLONE_GUIDE.md` first (5 min guide on what to follow after cloning)
+
 ---
 
-## � Table of Contents
+## 📋 Table of Contents
 
 1. [What You Get](#-what-you-get)
 2. [Quick Start](#-quick-start-5-minutes)
