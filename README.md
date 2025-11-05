@@ -2,11 +2,26 @@
 
 A **complete, automated DevOps infrastructure template** for deploying microservices to Kubernetes with GitOps, monitoring, and logging—all with a single command.
 
-**Get started in 5 minutes:** `./scripts/setup.sh`
+**⏱️ Get started in 5 minutes:** `./scripts/setup.sh`
 
 ---
 
-## 📊 What You Get
+## � Table of Contents
+
+1. [What You Get](#-what-you-get)
+2. [Quick Start](#-quick-start-5-minutes)
+3. [Project Structure](#-project-structure)
+4. [Common Workflows](#-common-workflows)
+5. [Key Commands](#-key-commands)
+6. [Monitoring & Observability](#-monitoring--observability)
+7. [Architecture & Git Flow](#-architecture--git-flow)
+8. [Security & Configuration](#-security--configuration)
+9. [Troubleshooting](#-troubleshooting)
+10. [Learn More](#-learn-more)
+
+---
+
+## �📊 What You Get
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -15,7 +30,7 @@ A **complete, automated DevOps infrastructure template** for deploying microserv
 │                                                         │
 │  🎯 Orchestration                                       │
 │  ├─ Kubernetes cluster (local or cloud)               │
-│  ├─ Helm package manager                              │
+│  ├─ Helm package manager (v3+)                        │
 │  └─ ArgoCD for GitOps-driven deployments             │
 │                                                         │
 │  📊 Observability                                       │
@@ -24,9 +39,9 @@ A **complete, automated DevOps infrastructure template** for deploying microserv
 │  ├─ Loki (log aggregation)                            │
 │  └─ Alertmanager (alert routing)                      │
 │                                                         │
-│  🔧 Development                                         │
+│  🔧 Development & CI/CD                                │
 │  ├─ Docker registry (localhost:5001)                  │
-│  ├─ GitHub Actions (CI/CD)                            │
+│  ├─ GitHub Actions (CI/CD pipelines)                  │
 │  ├─ Service templates (Node.js, Python, Go)           │
 │  └─ One-click service generator                       │
 │                                                         │
@@ -42,71 +57,151 @@ A **complete, automated DevOps infrastructure template** for deploying microserv
 
 ## ⚡ Quick Start (5 Minutes)
 
-### 1. Prerequisites
+### Step 1: Prerequisites Check
 
-Make sure you have:
-- **Kubernetes**: Docker Desktop, Minikube, or any K8s cluster
-- **Helm 3**: `helm version`
-- **kubectl**: `kubectl cluster-info`
-- **Docker**: `docker version`
-- **Git**: `git --version`
-
-### 2. One-Click Setup
+Verify you have all required tools installed:
 
 ```bash
-# Clone and navigate
+# Kubernetes: Check your cluster
+kubectl cluster-info
+kubectl get nodes
+
+# Helm: Package manager for Kubernetes
+helm version
+
+# Docker: Container runtime
+docker version
+
+# Git: Version control
+git --version
+```
+
+**✅ Supported Kubernetes Distributions:**
+- Docker Desktop (recommended for Mac/Windows)
+- Minikube (lightweight local K8s)
+- Kind (Kubernetes in Docker)
+- Cloud K8s (EKS, GKE, AKS, etc.)
+
+### Step 2: Clone & Setup
+
+```bash
+# Clone the repository
 git clone https://github.com/AndreLiar/devopslocally.git
 cd devopslocally
 
 # Run one-click setup
 ./scripts/setup.sh
 
-# Output: Infrastructure ready in ~10 minutes! ✅
+# ✅ Output: Infrastructure ready in ~10 minutes!
 ```
 
-### 3. Access Services
+**What happens during setup:**
+- ✅ Creates Kubernetes namespaces (default, monitoring, argocd, etc.)
+- ✅ Deploys Prometheus, Grafana, Loki, Alertmanager
+- ✅ Configures ArgoCD for GitOps
+- ✅ Sets up local Docker registry
+- ✅ Applies Helm charts
+- ✅ Initializes sample auth-service
+
+### Step 3: Access Your Services
 
 ```bash
-# Port forward to access Grafana
+# Start port forwarding to all services
 make port-forward
 
-# Open browser
-open http://localhost:3000  # Grafana (admin/admin123)
+# Access Grafana dashboards
+open http://localhost:3000
+# Login: admin / admin123
 
-# View services
+# Access ArgoCD
+open http://localhost:8080
+# Login: admin / admin123
+
+# Access Prometheus
+open http://localhost:9090
+
+# View cluster status
 make status
 ```
 
 ---
 
-## 🎯 Project Status
+---
 
-### Phase Completion
-- **Phase 1 (60%)**: One-click setup, basic deployment ✅
-- **Phase 2 (70%)**: Advanced features, CI/CD, databases ✅
-- **Phase 3 (80%)**: Security hardening, testing framework ✅
+## �️ Project Structure
 
-### Phase 3 Features (NEW!)
-- ✅ Security hardening (RBAC, Pod Security Policies, TLS)
-- ✅ Sealed Secrets encryption setup
-- ✅ Advanced testing framework (Jest, integration tests)
-- ✅ Database backup/restore automation
-- ✅ Security audit script
-- ✅ Comprehensive documentation (Security, Architecture, Troubleshooting)
-
-### Phase 2 Features
-- ✅ Enhanced CI/CD pipeline (test, scan, deploy)
-- ✅ Service templates (Node.js, Python, Go)
-- ✅ Advanced Helm (ConfigMaps, Secrets, HPA, Network Policies)
-- ✅ Database integration (PostgreSQL, Redis)
-- ✅ Git hooks (ESLint, Prettier, Commitlint)
-- ✅ Production-grade auto-scaling
-
-**[👉 Read Phase 3 Guide →](docs/PHASE3_GUIDE.md)** | **[Phase 2 Guide →](docs/PHASE2_GUIDE.md)**
+```
+devopslocally/
+│
+├── 📖 Documentation (START HERE!)
+│   ├── README.md                    ← This file
+│   ├── START_HERE.md                ← First-time guide
+│   ├── DOCUMENTATION_INDEX.md       ← All docs index
+│   └── docs/
+│       ├── WORKFLOWS_EXPLAINED.md   ← GitHub Actions
+│       ├── GIT_FLOW.md              ← 3-branch strategy (dev, staging, main)
+│       ├── GITOPS_PIPELINE.md       ← CI/CD pipeline
+│       ├── KUBERNETES_GUIDE.md      ← K8s basics
+│       ├── MONITORING_GUIDE.md      ← Grafana & Prometheus
+│       └── TROUBLESHOOTING.md       ← Common issues
+│
+├── 🚀 Setup & Configuration
+│   ├── Makefile                     ← All make commands
+│   ├── .env.example                 ← Environment template
+│   └── scripts/
+│       ├── setup.sh                 ← One-click infrastructure setup
+│       ├── configure-env.sh         ← Configuration wizard
+│       └── create-service.sh        ← Service generator
+│
+├── 🔧 Microservices (Your Applications)
+│   ├── auth-service/                ← Example Node.js service
+│   │   ├── server.js               ← Application code
+│   │   ├── package.json            ← Dependencies
+│   │   ├── Dockerfile              ← Container image
+│   │   └── tests/                  ← Tests
+│   │
+│   └── (Add your services here!)
+│
+├── 📦 Helm Charts (Kubernetes Deployment)
+│   ├── helm/
+│   │   ├── auth-service/            ← Auth service chart
+│   │   │   ├── Chart.yaml          ← Chart metadata
+│   │   │   ├── values.yaml         ← Default values
+│   │   │   ├── values-dev.yaml     ← Dev environment overrides
+│   │   │   ├── values-staging.yaml ← Staging environment overrides
+│   │   │   ├── values-prod.yaml    ← Production environment overrides
+│   │   │   └── templates/          ← K8s manifests (deployment, service, etc.)
+│   │   │
+│   │   └── postgres/                ← PostgreSQL database chart
+│   │       ├── Chart.yaml
+│   │       ├── values.yaml
+│   │       ├── values-dev.yaml
+│   │       └── templates/
+│   │
+│   └── README.md                    ← Helm documentation
+│
+├── 🔄 CI/CD Pipelines
+│   └── .github/workflows/
+│       ├── deploy.yml               ← Auto-deploy on push
+│       ├── test-and-scan.yml        ← PR tests & security scans
+│       ├── multi-env-deploy.yml     ← Deploy to dev/staging/main
+│       └── deploy-local.yml         ← Local testing
+│
+├── 🧪 Testing
+│   └── tests/
+│       ├── test-grafana-quick.sh    ← Quick health check
+│       ├── test-grafana-integration.sh ← Full integration tests
+│       └── README.md                ← Testing guide
+│
+└── 📋 Planning & Status
+    ├── PROJECT_COMPLETION_PLAN.md
+    ├── ANALYSIS_SUMMARY.txt
+    └── version.txt
+```
 
 ---
 
-## 📚 Key Commands
+## 📚 Essential Commands
 
 ```bash
 # Setup & Configuration
@@ -144,138 +239,331 @@ helm install postgres helm/postgres/ -f helm/postgres/values-prod.yaml # Deploy 
 kubectl port-forward svc/postgresql 5432:5432                           # Access database
 ```
 
----
+## 📚 Essential Commands
 
-## 🏗️ Project Structure
-
-```
-devopslocally/
-├── 🎯 Root Level (YOU START HERE)
-│   ├── README.md                    ← This file
-│   ├── Makefile                     ← All commands
-│   ├── .env.example                 ← Environment template
-│   └── START_HERE.md                ← First-time orientation
-│
-├── 📜 Scripts (Automation)
-│   ├── scripts/setup.sh             ← One-click infrastructure
-│   ├── scripts/configure-env.sh     ← Configuration wizard
-│   └── scripts/create-service.sh    ← Service generator
-│
-├── 🔧 Infrastructure (Helm)
-│   ├── auth-service/                ← Example microservice
-│   │   ├── server.js               ← Node.js app
-│   │   ├── package.json            ← Dependencies
-│   │   └── Dockerfile              ← Container image
-│   │
-│   └── helm/                         ← Helm charts (reorganized)
-│       ├── auth-service/            ← Auth service chart
-│       │   ├── Chart.yaml
-│       │   ├── values.yaml          ← Base configuration
-│       │   ├── values-dev.yaml      ← Dev overrides
-│       │   ├── values-staging.yaml  ← Staging overrides
-│       │   ├── values-prod.yaml     ← Production overrides
-│       │   └── templates/           ← K8s manifests
-│       │
-│       ├── postgres/                ← Database chart
-│       │   ├── Chart.yaml
-│       │   ├── values.yaml
-│       │   ├── values-dev.yaml
-│       │   ├── values-prod.yaml
-│       │   └── templates/
-│       │
-│       └── README.md                ← Helm documentation
-│
-├── 🔄 CI/CD
-│   └── .github/workflows/
-│       ├── deploy.yml               ← Auto-deploy on push
-│       └── deploy-local.yml         ← Local testing
-│
-├── 📊 Monitoring
-│   └── docs/
-│       ├── GITOPS_PIPELINE.md       ← CI/CD flow explained
-│       ├── HOW_TO_CHECK_DASHBOARDS.md  ← Grafana guide
-│       └── ...
-│
-├── 🧪 Testing
-│   └── tests/
-│       ├── test-grafana-quick.sh    ← Health check
-│       ├── test-grafana-integration.sh
-│       └── README.md
-│
-└── 📋 Planning
-    ├── PROJECT_COMPLETION_PLAN.md    ← Full roadmap
-    ├── PROJECT_COMPLETION_CHECKLIST.md
-    └── ANALYSIS_SUMMARY.txt
-```
-
----
-
-## 🎯 Common Workflows
-
-### Create New Microservice
+### � Setup & Configuration Commands
 
 ```bash
-# Generate service scaffolding
-make create-service NAME=payment LANGUAGE=nodejs
+# One-click infrastructure setup (do this first!)
+make setup
 
-# Start coding
-cd payment-service/
-npm install
-npm start
+# Interactive configuration wizard
+make configure-env
 
-# Deploy to Kubernetes
-git push  # Triggers CI/CD pipeline automatically
-```
-
-### Monitor Your Services
-
-```bash
-# Start port forwarding
-make port-forward
-
-# Open Grafana
-open http://localhost:3000
-
-# Browse dashboards
-# → Kubernetes cluster metrics
-# → Service-specific metrics
-# → System health
-```
-
-### View Logs
-
-```bash
-# See all pods
-kubectl get pods
-
-# Stream logs from service
-make logs SERVICE=auth-service
-
-# Or use kubectl directly
-kubectl logs -f deployment/auth-service
-```
-
-### Troubleshoot Issues
-
-```bash
-# Health check
+# Health check all components
 make check
 
-# Pod status
+# View cluster status and all services
+make status
+```
+
+### 🐳 Service Management
+
+```bash
+# Generate new microservice scaffold
+make create-service NAME=my-api LANGUAGE=nodejs
+
+# Build Docker image for your service
+make build
+
+# Push image to local registry
+make push
+
+# Deploy/update all services
+make deploy
+
+# Redeploy (useful if something crashed)
+make restart
+```
+
+### 🔍 Monitoring & Logs
+
+```bash
+# Start port forwarding to all services
+make port-forward
+
+# View pod logs in real-time
+make logs SERVICE=auth-service
+
+# Get pod status and details
 make status
 
-# Open shell in pod
+# Open shell in a running pod
 make shell
 
 # Execute command in pod
 make exec POD=auth-service CMD="ls -la"
 
-# View pod details
+# Watch pod events in real-time
+kubectl get events --sort-by='.lastTimestamp' -w
+```
+
+### 🧪 Testing
+
+```bash
+# Run quick health checks
+./tests/test-grafana-quick.sh
+
+# Run full integration tests
+./tests/test-grafana-integration.sh
+
+# Run application tests
+make test
+```
+
+### 💾 Database Operations
+
+```bash
+# Deploy PostgreSQL (development)
+helm install postgres helm/postgres/
+
+# Deploy PostgreSQL (production)
+helm install postgres helm/postgres/ -f helm/postgres/values-prod.yaml
+
+# Access database via port forward
+kubectl port-forward svc/postgresql 5432:5432
+psql -h localhost -U postgres  # Password in .env
+```
+
+### 🧹 Cleanup & Troubleshooting
+
+```bash
+# Clean local files and builds
+make clean
+
+# Delete all Kubernetes resources
+make destroy
+
+# Describe a pod (detailed info)
 kubectl describe pod <pod-name>
 
-# Check pod events
-kubectl get events --sort-by='.lastTimestamp'
+# Get pod logs with timestamps
+kubectl logs <pod-name> --timestamps=true
+
+# Port forward to specific service
+kubectl port-forward svc/auth-service 3000:3000
 ```
+
+---
+
+## 🔄 Common Workflows
+
+### Workflow 1: Create & Deploy New Service
+
+```bash
+# Step 1: Generate service scaffolding
+make create-service NAME=payment LANGUAGE=nodejs
+
+# Step 2: Navigate to service
+cd payment-service/
+
+# Step 3: Install dependencies
+npm install
+
+# Step 4: Start coding your service
+npm start
+
+# Step 5: Create feature branch for changes
+git checkout -b feature/payment-api
+git add .
+git commit -m "Add payment API"
+
+# Step 6: Push and create Pull Request
+git push origin feature/payment-api
+# Create PR on GitHub (auto-tests via GitHub Actions)
+
+# Step 7: Merge to dev when approved
+# (Or use make commands to merge locally)
+
+# ✅ Auto-deployed via CI/CD!
+```
+
+### Workflow 2: Monitor Your Services
+
+```bash
+# Step 1: Start port forwarding
+make port-forward
+
+# Step 2: Open Grafana dashboard
+open http://localhost:3000
+# Login: admin / admin123
+
+# Step 3: Browse available dashboards:
+# - Kubernetes / Compute Resources (CPU, Memory)
+# - Kubernetes / Pod Count
+# - Your Service Dashboards
+# - System Health
+
+# Step 4: Create custom alerts in Grafana
+# - Define conditions
+# - Add notification channels
+# - Test alerts
+```
+
+### Workflow 3: Debug a Failing Service
+
+```bash
+# Step 1: Check pod status
+kubectl get pods
+
+# Step 2: View recent logs
+make logs SERVICE=auth-service
+
+# Step 3: Get pod details and events
+kubectl describe pod <pod-name>
+
+# Step 4: Open shell in pod for debugging
+make shell
+
+# Step 5: Check health endpoints
+curl http://localhost:3000/health
+
+# Step 6: Check Prometheus metrics
+open http://localhost:9090
+# Query: up{job="auth-service"}
+
+# Step 7: If needed, restart the pod
+make restart
+```
+
+### Workflow 4: Deploy Code Changes
+
+```bash
+# Step 1: Make code changes
+nano auth-service/server.js
+
+# Step 2: Commit and push
+git add auth-service/
+git commit -m "Fix: improve error handling"
+git push origin feature/fix-error-handling
+
+# Step 3: Create Pull Request on GitHub
+# - GitHub Actions runs tests automatically
+# - PR shows test results (pass/fail)
+
+# Step 4: Get approval and merge
+# - Reviewer approves PR
+# - Merge to dev branch
+# - GitHub Actions builds Docker image
+# - ArgoCD auto-deploys to Kubernetes
+
+# ✅ Done! Your changes are live!
+# ⏱️ Total time: ~5-10 minutes
+```
+
+---
+
+## 🌳 Git Flow: 3-Branch Strategy
+
+Your repository uses **3 production branches** for smooth deployments:
+
+### Branch Overview
+
+| Branch | Purpose | Users | Env |
+|--------|---------|-------|-----|
+| **dev** | Development & testing | Developers | dev namespace |
+| **staging** | Pre-production tests | QA/Testers | staging namespace |
+| **main** | Production (LIVE!) | Users | production namespace |
+
+### Typical Release Flow
+
+```
+Your Feature Branch
+        ↓
+    (PR to dev)
+        ↓
+    DEV ENV (test)
+        ↓
+    (merge dev → staging)
+        ↓
+  STAGING ENV (QA tests)
+        ↓
+    (merge staging → main)
+        ↓
+ PRODUCTION ENV (LIVE!) 🎉
+```
+
+### Git Commands for This Flow
+
+```bash
+# Create feature branch from dev
+git checkout -b feature/my-feature origin/dev
+
+# Work on your feature
+git add .
+git commit -m "Add my feature"
+git push origin feature/my-feature
+
+# Create PR to dev on GitHub
+# Once approved, it's auto-deployed to dev
+
+# Later, promote to staging
+git checkout staging
+git merge dev --no-ff
+git push origin staging
+
+# Finally, release to production
+git checkout main
+git merge staging --no-ff
+git tag -a v1.2.3
+git push origin main
+git push origin v1.2.3
+```
+
+**[👉 Detailed Git Flow Guide →](docs/GIT_FLOW.md)**
+
+---
+
+## 📊 Monitoring & Observability
+
+### Available Dashboards (28 Total)
+
+**Kubernetes Dashboards (18):**
+- ✅ Compute Resources (CPU, Memory, Storage)
+- ✅ Networking (Pod communication, traffic)
+- ✅ System Components (API server, kubelet)
+- ✅ Persistent Volumes
+
+**System Dashboards (10):**
+- ✅ Node Exporter (Hardware metrics)
+- ✅ Prometheus (metrics system health)
+- ✅ Alertmanager (alerts)
+- ✅ etcd, CoreDNS
+- ✅ Grafana overview
+
+### Prometheus Queries (Examples)
+
+```bash
+# CPU usage per pod
+sum(rate(container_cpu_usage_seconds_total[5m])) by (pod_name)
+
+# Memory usage per pod
+sum(container_memory_usage_bytes) by (pod_name)
+
+# Pod restart count
+increase(kube_pod_container_status_restarts_total[1h])
+
+# Service availability
+up{job="auth-service"}
+```
+
+### Loki Log Queries (Examples)
+
+```bash
+# All logs from auth-service
+{job="auth-service"}
+
+# Error logs only
+{job="auth-service"} | level="error"
+
+# Last 100 log entries
+{job="auth-service"} | tail 100
+
+# Logs containing specific text
+{job="auth-service"} | "database connection failed"
+```
+
+**[👉 Complete Monitoring Guide →](docs/MONITORING_GUIDE.md)**
 
 ---
 
@@ -310,9 +598,9 @@ export DB_PASSWORD=secure-password
 # Reference in deployment as: ${DB_PASSWORD}
 ```
 
-### Credentials
+### Default Credentials
 
-**Default Credentials** (change in production!):
+**⚠️ Change these in production!**
 
 | Service | User | Password | URL |
 |---------|------|----------|-----|
@@ -320,371 +608,291 @@ export DB_PASSWORD=secure-password
 | ArgoCD | admin | admin123 | http://localhost:8080 |
 | Prometheus | - | - | http://localhost:9090 |
 
----
-
-## 📊 Monitoring & Observability
-
-### Available Dashboards (28 Total)
-
-**Kubernetes Dashboards (18):**
-- Compute Resources (CPU, Memory, Storage)
-- Networking (Pod communication, traffic)
-- System Components (API server, kubelet, etc.)
-- Persistent Volumes
-
-**System Dashboards (10):**
-- Node Exporter (Hardware metrics)
-- Prometheus & Alertmanager
-- etcd, CoreDNS monitoring
-- Grafana Overview
-
-### Prometheus Queries
-
-```bash
-# CPU usage
-sum(rate(container_cpu_usage_seconds_total[5m])) by (pod_name)
-
-# Memory usage
-sum(container_memory_usage_bytes) by (pod_name)
-
-# Pod count
-count(kube_pod_info)
-```
-
-### Loki Log Queries
-
-```bash
-# All logs from auth-service
-{job="auth-service"}
-
-# Error logs
-{job="auth-service"} | level="error"
-
-# Last 100 entries
-{job="auth-service"} | tail 100
-```
+**[� Security Best Practices →](docs/SECURITY.md)**
 
 ---
 
 ## 🚀 Deployment Strategies
 
-### Local Development
+### Local Development Flow
 
 ```bash
-# Start services locally
-cd auth-service
-npm install
+# 1. Clone and setup
+git clone https://github.com/AndreLiar/devopslocally.git
+cd devopslocally
+./scripts/setup.sh
+
+# 2. Create your service
+make create-service NAME=my-service LANGUAGE=nodejs
+
+# 3. Develop locally
+cd my-service
 npm start
 
-# Test locally
-curl http://localhost:3000
+# 4. Create feature branch
+git checkout -b feature/my-feature
 
-# Deploy to K8s when ready
-make deploy
+# 5. Make changes and commit
+git add .
+git commit -m "Add feature"
+
+# 6. Push and create PR
+git push origin feature/my-feature
+# → Open PR on GitHub
 ```
 
-### Docker Image Build
-
-```bash
-# Build Docker image
-make build
-
-# Test image locally
-docker run -p 3000:3000 localhost:5001/auth-service:latest
-
-# Push to registry
-make push
-
-# Kubernetes auto-deploys (GitOps)
-```
-
-### GitOps Workflow
+### GitOps Deployment Flow
 
 ```
-Code change → Git push → GitHub Actions
-         ↓
-    Build & push image → Update Helm values.yaml
-         ↓
-    Commit values.yaml back to repo
-         ↓
-    ArgoCD detects change → Syncs to cluster
-         ↓
-    New pods roll out automatically ✅
+Your Code Change
+       ↓
+   Git Push
+       ↓
+GitHub Actions (CI)
+├─ Run tests
+├─ Build image
+├─ Push to registry
+└─ Update Helm values
+       ↓
+  Commit to Git
+       ↓
+ ArgoCD Watches Git
+├─ Detects change
+├─ Generates K8s YAML
+└─ Applies to cluster
+       ↓
+ Kubernetes Rolling Update
+├─ Create new pods
+├─ Health checks
+├─ Switch traffic
+└─ Cleanup old pods
+       ↓
+   ✅ LIVE! (Zero downtime)
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Can't Connect to Kubernetes
+### Pod Won't Start
 
 ```bash
-# Check if cluster is running
-kubectl cluster-info
+# Check pod status
+kubectl describe pod <pod-name>
 
-# Switch context if multiple clusters
-kubectl config get-contexts
-kubectl config use-context docker-desktop
+# View recent logs
+kubectl logs <pod-name> --tail=50
 
-# Verify kubectl config
-cat ~/.kube/config | grep current-context
+# Check events
+kubectl get events --sort-by='.lastTimestamp'
+
+# Check resource limits
+kubectl top pods
 ```
 
-### Grafana Not Accessible
+### Can't Access Services
 
 ```bash
 # Start port forwarding
-kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80
+make port-forward
 
-# Check pod status
-kubectl get pods -n monitoring
+# Or manually:
+kubectl port-forward svc/auth-service 3000:3000
 
-# View logs
-kubectl logs -n monitoring deployment/kube-prometheus-grafana
+# Test locally
+curl http://localhost:3000/health
 ```
 
-### Service Not Deploying
+### Helm Deployment Failed
 
 ```bash
-# Check deployment status
-kubectl describe deployment auth-service
+# Check Helm release status
+helm status auth-service
 
-# View pod events
-kubectl get events --sort-by='.lastTimestamp'
+# See Helm release history
+helm history auth-service
 
-# Check image pull
-kubectl describe pod <pod-name> | grep Image
-
-# Verify registry connection
-docker pull localhost:5001/auth-service:latest
+# Rollback to previous version
+helm rollback auth-service
 ```
 
-### High Resource Usage
+### ArgoCD Not Syncing
 
 ```bash
-# Check resource requests
-kubectl describe node
+# Check ArgoCD app status
+kubectl get application -n argocd
 
-# See pod resource usage
-kubectl top pods
+# Refresh ArgoCD
+kubectl port-forward -n argocd svc/argocd-server 8080:443
+open http://localhost:8080
 
-# Scale deployment down
-kubectl scale deployment auth-service --replicas=1
-
-# Check HPA status
-kubectl get hpa
+# Manually sync
+argocd app sync auth-service
 ```
 
 ---
 
-## 📈 Performance Tuning
+## 📚 Learn More
 
-### Resource Limits
+### Key Documentation Files
 
-Edit `helm/auth-service/values.yaml` (or environment-specific: `values-prod.yaml`):
+| Document | Purpose |
+|----------|---------|
+| [START_HERE.md](START_HERE.md) | First-time setup guide |
+| [docs/GIT_FLOW.md](docs/GIT_FLOW.md) | 3-branch Git strategy |
+| [docs/KUBERNETES_GUIDE.md](docs/KUBERNETES_GUIDE.md) | K8s concepts |
+| [docs/MONITORING_GUIDE.md](docs/MONITORING_GUIDE.md) | Prometheus & Grafana |
+| [docs/GITOPS_PIPELINE.md](docs/GITOPS_PIPELINE.md) | CI/CD pipeline |
+| [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) | Complete index |
 
-```yaml
-resources:
-  requests:
-    memory: "256Mi"
-    cpu: "250m"
-  limits:
-    memory: "512Mi"
-    cpu: "500m"
-```
+### External Resources
 
-### Horizontal Pod Autoscaling
+- 🔗 [Kubernetes Official Docs](https://kubernetes.io/docs/)
+- 🔗 [Helm Documentation](https://helm.sh/docs/)
+- 🔗 [ArgoCD User Guide](https://argo-cd.readthedocs.io/)
+- 🔗 [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/)
+- 🔗 [Grafana Dashboards](https://grafana.com/grafana/dashboards/)
 
-Configure in `helm/auth-service/values.yaml` or override in environment files:
+---
 
-```yaml
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-```
+## ✅ Quick Health Check
 
-### Database Caching
-
-Use Redis for session/cache:
+After setup, verify everything is working:
 
 ```bash
-# Deploy Redis
-helm install redis redis/redis -n default
+# Check cluster
+kubectl cluster-info
 
-# Connect from app
-REDIS_URL=redis://redis:6379
-```
+# Check all pods
+kubectl get pods --all-namespaces
 
----
+# Check services
+make status
 
-## 🔄 CI/CD Pipeline
-
-### GitHub Actions Workflow
-
-**Triggered on:** Push to `main` branch in `auth-service/` directory
-
-**Steps:**
-1. ✅ Checkout code
-2. ✅ Build Docker image (tag: run number)
-3. ✅ Push to GitHub Container Registry (ghcr.io)
-4. ✅ Update Helm `values.yaml` with new tag
-5. ✅ Commit & push values.yaml
-6. ✅ ArgoCD detects change
-7. ✅ Kubernetes auto-syncs new version
-
-**Manual trigger:**
-```bash
-git push origin main
-# Or use GitHub Actions UI for manual trigger
-```
-
----
-
-## 📖 Additional Resources
-
-### Documentation Files
-- **START_HERE.md** - First-time orientation
-- **PROJECT_COMPLETION_PLAN.md** - Full implementation roadmap
-- **GITOPS_PIPELINE.md** - CI/CD pipeline details
-- **HOW_TO_CHECK_DASHBOARDS.md** - Grafana guide
-
-### External Links
-- [Kubernetes Docs](https://kubernetes.io/docs/)
-- [Helm Docs](https://helm.sh/docs/)
-- [ArgoCD Docs](https://argo-cd.readthedocs.io/)
-- [Prometheus Queries](https://prometheus.io/docs/prometheus/latest/querying/basics/)
-
----
-
-## 🤝 Contributing
-
-### Code Style
-- JavaScript: Follow `.eslintrc.json`
-- Bash: shellcheck compatible
-- YAML: 2-space indentation
-- Markdown: Conventional format
-
-### Commit Messages
-```bash
-# Feature
-git commit -m "feat: add new dashboard"
-
-# Fix
-git commit -m "fix: correct deployment template"
-
-# Docs
-git commit -m "docs: update setup guide"
-
-# Chore
-git commit -m "chore: update dependencies"
-```
-
-### Creating Pull Requests
-1. Fork repository
-2. Create feature branch: `git checkout -b feature/my-feature`
-3. Make changes
-4. Run tests: `make test`
-5. Commit: `git commit -m "feat: ..."`
-6. Push: `git push origin feature/my-feature`
-7. Open PR with description
-
----
-
-## ✅ Success Checklist
-
-After setup, you should have:
-
-- [ ] Kubernetes cluster running (`kubectl cluster-info`)
-- [ ] ArgoCD deployed (`kubectl get pods -n argocd`)
-- [ ] Prometheus collecting metrics (`make status`)
-- [ ] Grafana with 28 dashboards (`http://localhost:3000`)
-- [ ] Loki aggregating logs (`kubectl get pods -n monitoring`)
-- [ ] Local Docker registry (`docker ps | grep registry`)
-- [ ] Example auth-service deployed (`kubectl get pods`)
-- [ ] CI/CD pipeline configured (`.github/workflows/`)
-
-**All checks pass?** You're ready to deploy! 🎉
-
----
-
-## 🆘 Getting Help
-
-### Quick Help
-```bash
-# Show all commands
-make help
-
-# Test setup
-make test
+# Run tests
+./tests/test-grafana-quick.sh
 
 # Health check
 make check
-
-# View status
-make status
 ```
 
-### Common Issues & Solutions
+---
 
-**Issue:** `kubectl: command not found`
-- **Solution:** Install kubectl or add to PATH
+## 🎯 Next Steps
 
-**Issue:** Cluster not running
-- **Solution:** Start Docker Desktop or Minikube
+### 1️⃣ First Time?
+Start with [START_HERE.md](START_HERE.md)
 
-**Issue:** Port 3000 already in use
-- **Solution:** Kill process or use different port: `make port-forward-grafana 8000:80`
+### 2️⃣ Want to Deploy?
+Follow [docs/GITOPS_PIPELINE.md](docs/GITOPS_PIPELINE.md)
 
-**Issue:** Image pull failed
-- **Solution:** Check registry: `docker push localhost:5001/test:latest`
+### 3️⃣ Need to Debug?
+Check [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
-### Additional Support
-- Check `docs/` folder for detailed guides
-- Review test outputs: `./tests/test-grafana-quick.sh`
-- Check logs: `kubectl logs -f deployment/auth-service`
+### 4️⃣ Learning Git Flow?
+Read [docs/GIT_FLOW.md](docs/GIT_FLOW.md)
+
+---
+
+## 📊 Project Status
+
+✅ **Phase 1** - One-click setup & basic deployment  
+✅ **Phase 2** - Advanced CI/CD & service templates  
+✅ **Phase 3** - Security hardening & monitoring  
+
+**Current:** All phases complete! Production-ready! 🎉
+
+---
+
+## 💡 Pro Tips
+
+```bash
+# Alias for frequent commands
+alias k=kubectl
+alias kgp="kubectl get pods"
+alias kgs="kubectl get svc"
+alias kdel="kubectl delete"
+
+# Watch pod status in real-time
+kubectl get pods -w
+
+# Stream logs with timestamps
+kubectl logs -f <pod-name> --timestamps=true
+
+# Execute command in pod
+kubectl exec -it <pod-name> -- /bin/bash
+
+# Port forward multiple services
+make port-forward  # Forwards all at once
+
+# Get pod IP addresses
+kubectl get pods -o wide
+
+# Export pod logs
+kubectl logs <pod-name> > pod.log
+```
+
+---
+
+## 🆘 Quick Help
+
+```bash
+# Show all available commands
+make help
+
+# Run health check
+make check
+
+# View cluster status
+make status
+
+# Get help on specific command
+make deploy --help
+```
+
+---
+
+## 📞 Support
+
+- ❓ Questions? Check the docs folder
+- 🐛 Found a bug? Check [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- 📚 Want to learn more? See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
+- 💬 Need help? Check the test outputs: `./tests/test-grafana-quick.sh`
 
 ---
 
 ## 📝 License
 
-This project is provided as-is for educational and development purposes.
+This project is provided for **educational and development purposes**.
 
 ---
 
-## 🎉 Next Steps
+## 🚀 You're Ready!
 
 ```bash
-# 1. One-click setup
+# Everything set? Let's go! 🎉
+
+# 1. Start here
 ./scripts/setup.sh
 
-# 2. Configure environment
-make configure-env
-
-# 3. Start port forwarding
+# 2. Access Grafana
 make port-forward
-
-# 4. Open Grafana
 open http://localhost:3000
 
-# 5. Create your first service
+# 3. Create service
 make create-service NAME=my-api LANGUAGE=nodejs
 
-# 6. Deploy
+# 4. Deploy
 make deploy
 
-# 7. Monitor
+# 5. Monitor
 open http://localhost:3000/dashboards
 
-# 8. View logs
-make logs SERVICE=my-api
-
-# 🚀 You're up and running!
+# ✅ Success!
 ```
 
 ---
 
-**Made with ❤️ for DevOps Engineers**
-
+**Made with ❤️ for DevOps Engineers**  
 *Last Updated: November 5, 2025*
+
