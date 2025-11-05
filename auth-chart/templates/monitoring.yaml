@@ -1,0 +1,110 @@
+{{- if .Values.monitoring.enabled }}
+---
+# Prometheus ServiceMonitor for scraping application metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "auth-chart.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "auth-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "auth-chart.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    scrapeTimeout: 10s
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "auth-chart.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "auth-chart.labels" . | nindent 4 }}
+    prometheus: kube-prometheus
+spec:
+  groups:
+  - name: {{ include "auth-chart.fullname" . }}.rules
+    interval: 30s
+    rules:
+    # Alert: High error rate
+    - alert: HighErrorRate
+      expr: |
+        rate(http_requests_total{job="{{ include "auth-chart.fullname" . }}", status=~"5.."}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        app: {{ include "auth-chart.fullname" . }}
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is above 5% for {{ include "auth-chart.fullname" . }}"
+
+    # Alert: High latency
+    - alert: HighLatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        app: {{ include "auth-chart.fullname" . }}
+      annotations:
+        summary: "High request latency detected"
+        description: "P95 latency is above 1 second for {{ include "auth-chart.fullname" . }}"
+
+    # Alert: Pod restart rate
+    - alert: HighPodRestartRate
+      expr: |
+        rate(kube_pod_container_status_restarts_total{pod=~"{{ include "auth-chart.fullname" . }}-.*"}[1h]) > 0.1
+      for: 15m
+      labels:
+        severity: warning
+        app: {{ include "auth-chart.fullname" . }}
+      annotations:
+        summary: "High pod restart rate"
+        description: "Pod is restarting frequently for {{ include "auth-chart.fullname" . }}"
+
+    # Alert: High memory usage
+    - alert: HighMemoryUsage
+      expr: |
+        container_memory_usage_bytes{pod=~"{{ include "auth-chart.fullname" . }}-.*"} / 
+        container_spec_memory_limit_bytes > 0.9
+      for: 5m
+      labels:
+        severity: warning
+        app: {{ include "auth-chart.fullname" . }}
+      annotations:
+        summary: "High memory usage detected"
+        description: "Memory usage is above 90% for {{ include "auth-chart.fullname" . }}"
+
+    # Alert: High CPU usage
+    - alert: HighCPUUsage
+      expr: |
+        rate(container_cpu_usage_seconds_total{pod=~"{{ include "auth-chart.fullname" . }}-.*"}[5m]) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        app: {{ include "auth-chart.fullname" . }}
+      annotations:
+        summary: "High CPU usage detected"
+        description: "CPU usage is above 80% for {{ include "auth-chart.fullname" . }}"
+
+    # Recording rules
+    - name: {{ include "auth-chart.fullname" . }}:recording
+      interval: 15s
+      rules:
+      - record: instance:requests:rate5m
+        expr: rate(http_requests_total[5m])
+      
+      - record: instance:errors:rate5m
+        expr: rate(http_requests_total{status=~"5.."}[5m])
+      
+      - record: instance:latency:p95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+{{- end }}
