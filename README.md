@@ -4,6 +4,16 @@ Welcome! This is a **production-grade DevOps infrastructure template** with ever
 
 **Your job:** Just provide your project details, and your multi-environment setup is ready. Focus on development, not infrastructure.
 
+## ⚡ Quick Start (One Command)
+
+Get your entire infrastructure deployed in 5-10 minutes:
+
+```bash
+bash scripts/setup-infrastructure.sh
+```
+
+**That's it!** Everything else is automated. See below for what gets deployed.
+
 ---
 
 ## 🎯 What You Get (Already Built)
@@ -25,6 +35,29 @@ This template includes a **complete, production-ready infrastructure** pre-confi
 ---
 
 ## 🛠️ Infrastructure Setup & Deployment
+
+### ⚡ QUICK START (Automated - 5-10 minutes)
+
+The easiest way to deploy infrastructure is using the automated setup script:
+
+```bash
+# 1. Make scripts executable (first time only)
+chmod +x scripts/setup-infrastructure.sh
+
+# 2. Run automated deployment (5-10 minutes)
+bash scripts/setup-infrastructure.sh
+
+# 3. Wait for completion and follow the instructions
+# 4. Your complete infrastructure is now ready! ✅
+```
+
+**That's it!** The script handles all 6 phases automatically. See `scripts/README.md` for more details.
+
+---
+
+### Manual Setup (Optional - 30-45 minutes)
+
+If you prefer manual deployment or need to understand each step, follow the phases below.
 
 ### Prerequisites
 
