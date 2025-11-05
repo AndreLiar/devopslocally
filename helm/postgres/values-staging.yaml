@@ -1,0 +1,66 @@
+# PostgreSQL Staging Environment Values
+
+replicaCount: 2
+
+image:
+  repository: postgres
+  tag: "14-alpine"
+
+auth:
+  username: postgres
+  password: "staging-db-password-change-me"
+  database: authdb
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "1000m"
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: standard
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+
+replication:
+  enabled: true
+  replicas: 1
+  synchronousCommit: "remote_apply"
+
+metrics:
+  enabled: true
+  interval: 30s
+
+healthcheck:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+service:
+  type: ClusterIP
+  port: 5432
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - postgres
+          topologyKey: kubernetes.io/hostname

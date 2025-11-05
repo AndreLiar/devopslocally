@@ -1,0 +1,211 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+
+---
+# ArgoCD Application for Development Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-development
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: dev
+    path: helm/auth-service
+    helm:
+      releaseName: auth-service
+      valuesObject:
+        replicaCount: 1
+        environment: development
+        logLevel: DEBUG
+        image:
+          tag: dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: development
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+
+---
+# ArgoCD Application for Staging Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: staging
+    path: helm/auth-service
+    helm:
+      releaseName: auth-service
+      valuesObject:
+        replicaCount: 2
+        environment: staging
+        logLevel: INFO
+        image:
+          tag: staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+
+---
+# ArgoCD Application for Production Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-production
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: main
+    path: helm/auth-service
+    helm:
+      releaseName: auth-service
+      valuesObject:
+        replicaCount: 3
+        environment: production
+        logLevel: WARNING
+        image:
+          tag: latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+
+---
+# ArgoCD Application for PostgreSQL (Development)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-development
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: dev
+    path: helm/postgres
+    helm:
+      releaseName: postgres
+      valuesObject:
+        replicaCount: 1
+        persistence:
+          size: 5Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: development
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 5
+
+---
+# ArgoCD Application for PostgreSQL (Staging)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: staging
+    path: helm/postgres
+    helm:
+      releaseName: postgres
+      valuesObject:
+        replicaCount: 2
+        persistence:
+          size: 20Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 5
+
+---
+# ArgoCD Application for PostgreSQL (Production)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-production
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AndreLiar/devopslocally.git
+    targetRevision: main
+    path: helm/postgres
+    helm:
+      releaseName: postgres
+      valuesObject:
+        replicaCount: 3
+        persistence:
+          size: 100Gi
+        backup:
+          enabled: true
+          schedule: "0 */6 * * *"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: false  # Manual prune for production safety
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 10

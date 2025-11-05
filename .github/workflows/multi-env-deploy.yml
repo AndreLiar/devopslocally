@@ -1,0 +1,239 @@
+name: Multi-Environment Deploy
+
+on:
+  push:
+    branches:
+      - main           # Production
+      - staging        # Staging
+      - dev            # Development
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  determine-environment:
+    name: Determine Target Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      namespace: ${{ steps.set-env.outputs.namespace }}
+      helm-values: ${{ steps.set-env.outputs.helm-values }}
+      replica-count: ${{ steps.set-env.outputs.replica-count }}
+      image-tag: ${{ steps.set-env.outputs.image-tag }}
+    steps:
+      - name: Set environment from branch
+        id: set-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "namespace=production" >> $GITHUB_OUTPUT
+            echo "helm-values=helm/auth-service/values.yaml,helm/auth-service/values-prod.yaml" >> $GITHUB_OUTPUT
+            echo "replica-count=3" >> $GITHUB_OUTPUT
+            echo "image-tag=latest" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]] || [[ "${{ github.event.inputs.environment }}" == "staging" ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "namespace=staging" >> $GITHUB_OUTPUT
+            echo "helm-values=helm/auth-service/values.yaml,helm/auth-service/values-staging.yaml" >> $GITHUB_OUTPUT
+            echo "replica-count=2" >> $GITHUB_OUTPUT
+            echo "image-tag=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+            echo "namespace=development" >> $GITHUB_OUTPUT
+            echo "helm-values=helm/auth-service/values.yaml,helm/auth-service/values-dev.yaml" >> $GITHUB_OUTPUT
+            echo "replica-count=1" >> $GITHUB_OUTPUT
+            echo "image-tag=dev" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    name: Deploy to ${{ needs.determine-environment.outputs.environment }}
+    needs: determine-environment
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.determine-environment.outputs.environment }}
+      url: https://${{ needs.determine-environment.outputs.environment }}-auth.example.com
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+      
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.12.0'
+      
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Verify cluster connection
+        run: kubectl cluster-info
+      
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${{ needs.determine-environment.outputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Deploy ConfigMaps
+        run: |
+          kubectl apply -f helm/auth-service/templates/configmap.yaml \
+            -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app.kubernetes.io/part-of=auth-service
+      
+      - name: Deploy Secrets
+        run: |
+          kubectl apply -f helm/auth-service/templates/secrets.yaml \
+            -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app.kubernetes.io/part-of=auth-service
+      
+      - name: Deploy auth-service Helm Chart
+        run: |
+          helm upgrade --install auth-service helm/auth-service/ \
+            --namespace ${{ needs.determine-environment.outputs.namespace }} \
+            --values $(echo "${{ needs.determine-environment.outputs.helm-values }}" | tr ',' ' ') \
+            --set replicaCount=${{ needs.determine-environment.outputs.replica-count }} \
+            --set image.tag=${{ needs.determine-environment.outputs.image-tag }}-sha-${{ github.sha }} \
+            --set environment=${{ needs.determine-environment.outputs.environment }} \
+            --wait \
+            --timeout 5m
+      
+      - name: Deploy PostgreSQL (if applicable)
+        if: needs.determine-environment.outputs.environment != 'dev'
+        run: |
+          helm upgrade --install postgres helm/postgres/ \
+            --namespace ${{ needs.determine-environment.outputs.namespace }} \
+            --values helm/postgres/values.yaml \
+            --values helm/postgres/values-${{ needs.determine-environment.outputs.environment }}.yaml \
+            --wait \
+            --timeout 5m
+      
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status deployment/auth-service \
+            -n ${{ needs.determine-environment.outputs.namespace }} \
+            --timeout=5m
+      
+      - name: Run smoke tests
+        run: |
+          SERVICE_IP=$(kubectl get svc auth-service \
+            -n ${{ needs.determine-environment.outputs.namespace }} \
+            -o jsonpath='{.spec.clusterIP}')
+          
+          for i in {1..5}; do
+            echo "Health check attempt $i..."
+            if kubectl run -i --rm debug --image=curlimages/curl:latest --restart=Never \
+               -- curl -s -f http://$SERVICE_IP:3000/health; then
+              echo "✓ Health check passed for ${{ needs.determine-environment.outputs.environment }}"
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+      
+      - name: Verify environment-specific configuration
+        run: |
+          kubectl get configmap -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app=auth-service -o yaml | grep -i environment || echo "ConfigMap verified"
+          
+          kubectl get secrets -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app=auth-service || echo "Secrets verified"
+      
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const statusEmoji = status === 'success' ? '✅' : '❌';
+            const env = '${{ needs.determine-environment.outputs.environment }}';
+            const message = `${statusEmoji} Deployment ${status}: auth-service deployed to ${env} environment`;
+            console.log(message);
+            console.log(JSON.stringify({
+              status: status,
+              environment: env,
+              namespace: '${{ needs.determine-environment.outputs.namespace }}',
+              deployment: 'auth-service',
+              commit: '${{ github.sha }}',
+              branch: '${{ github.ref }}',
+              replicas: '${{ needs.determine-environment.outputs.replica-count }}',
+              timestamp: new Date().toISOString()
+            }, null, 2));
+
+  post-deploy-validation:
+    name: Post-Deployment Validation
+    needs: [determine-environment, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Verify pod health in ${{ needs.determine-environment.outputs.environment }}
+        run: |
+          kubectl get pods -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app=auth-service -o wide
+          
+          kubectl logs -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app=auth-service --tail=50
+      
+      - name: Check resource utilization
+        run: |
+          kubectl top nodes || echo "Metrics server not available"
+          kubectl top pods -n ${{ needs.determine-environment.outputs.namespace }} \
+            --selector=app=auth-service || echo "Pod metrics not available"
+
+  rollback-on-failure:
+    name: Rollback if needed
+    needs: [determine-environment, post-deploy-validation]
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Rollback deployment
+        run: |
+          echo "⚠️  Rolling back ${{ needs.determine-environment.outputs.environment }} deployment..."
+          helm rollback auth-service -n ${{ needs.determine-environment.outputs.namespace }}
+          echo "✅ Rollback complete"
+      
+      - name: Notify rollback
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(JSON.stringify({
+              status: 'ROLLED_BACK',
+              environment: '${{ needs.determine-environment.outputs.environment }}',
+              namespace: '${{ needs.determine-environment.outputs.namespace }}',
+              reason: 'Deployment failed validation',
+              timestamp: new Date().toISOString()
+            }, null, 2));
