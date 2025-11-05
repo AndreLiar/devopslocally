@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("✅ Auth Service running inside Docker!");
+  res.send("✅ Auth Service v2 running inside Docker!");
 });
 
 app.listen(3000, () => {
