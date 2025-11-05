@@ -1,18 +1,18 @@
-# 🚀 Multi-Environment DevOps Template - Complete Infrastructure Ready
+# 🚀 Local DevOps Lab - Docker Desktop / Minikube / Kind
 
-Welcome! This is a **production-grade DevOps infrastructure template** with everything pre-configured. 
+Welcome! This is a **complete local Kubernetes development environment** with everything pre-configured.
 
-**Your job:** Just provide your project details, and your multi-environment setup is ready. Focus on development, not infrastructure.
+**Your job:** Focus on building and testing. Infrastructure is already built and automated.
 
-## ⚡ Quick Start (One Command)
+## ⚡ Quick Start (One Command - 5-10 Minutes)
 
-Get your entire infrastructure deployed in 5-10 minutes:
+Deploy your entire local infrastructure:
 
 ```bash
 bash scripts/setup-infrastructure.sh
 ```
 
-**That's it!** Everything else is automated. See below for what gets deployed.
+**That's it!** Everything else is automated. Your infrastructure is ready.
 
 ---
 
@@ -34,634 +34,227 @@ This template includes a **complete, production-ready infrastructure** pre-confi
 
 ---
 
-## 🛠️ Infrastructure Setup & Deployment
+## � Prerequisites (One-Time Setup)
 
-### ⚡ QUICK START (Automated - 5-10 minutes)
+Before running the automation script, ensure you have a local Kubernetes cluster and basic tools installed.
 
-The easiest way to deploy infrastructure is using the automated setup script:
+### Option A: Docker Desktop (Mac/Windows - Recommended)
+
+1. **Install Docker Desktop**: https://www.docker.com/products/docker-desktop
+2. **Enable Kubernetes**:
+   - Open Docker Desktop → Preferences/Settings
+   - Go to **Kubernetes** tab
+   - Check **Enable Kubernetes**
+   - Wait ~2 minutes for it to start
+3. **Verify**:
+   ```bash
+   kubectl cluster-info
+   kubectl get nodes
+   ```
+
+### Option B: Minikube (Linux/Mac/Windows)
+
+1. **Install Minikube**: https://minikube.sigs.k8s.io/
+2. **Start cluster**:
+   ```bash
+   minikube start --cpus=4 --memory=8192 --disk-size=50g
+   minikube addons enable ingress
+   ```
+3. **Verify**:
+   ```bash
+   minikube status
+   kubectl get nodes
+   ```
+
+### Option C: Kind (Lightweight - Linux/Mac/Windows)
+
+1. **Install Kind**: https://kind.sigs.k8s.io/
+2. **Create cluster**:
+   ```bash
+   kind create cluster --name devops-lab
+   ```
+3. **Verify**:
+   ```bash
+   kind get clusters
+   kubectl get nodes
+   ```
+
+---
+
+## 🛠️ Infrastructure Deployment (Automated)
+
+The setup script handles everything automatically:
 
 ```bash
-# 1. Make scripts executable (first time only)
-chmod +x scripts/setup-infrastructure.sh
-
-# 2. Run automated deployment (5-10 minutes)
 bash scripts/setup-infrastructure.sh
-
-# 3. Wait for completion and follow the instructions
-# 4. Your complete infrastructure is now ready! ✅
 ```
 
-**That's it!** The script handles all 6 phases automatically. See `scripts/README.md` for more details.
+**What gets deployed (automatically):**
+- ✅ 5 Kubernetes namespaces (dev, staging, production, argocd, monitoring)
+- ✅ ArgoCD (GitOps automation)
+- ✅ Prometheus (metrics collection)
+- ✅ Grafana (dashboards)
+- ✅ Loki + Promtail (log aggregation)
+- ✅ Network policies (namespace isolation)
+
+**Time:** 5-10 minutes
+**What you do:** Just run the script. Everything else is automated.
 
 ---
 
-### Manual Setup (Optional - 30-45 minutes)
+## 📋 After Deployment: Configuration (5 Minutes)
 
-If you prefer manual deployment or need to understand each step, follow the phases below.
+Your infrastructure is ready. Now connect it to your Git repository and applications.
 
-### Prerequisites
+### Step 2: Create GitHub Personal Access Token
 
-Before deploying infrastructure, ensure you have:
+ArgoCD needs permission to access your repository:
 
-```bash
-# Check if you have these installed
-kubectl version          # Kubernetes CLI
-helm version             # Kubernetes package manager
-docker version           # Container runtime
-git version              # Version control
-
-# Recommended versions
-kubectl: v1.24+
-helm: v3.10+
-docker: 20.10+
-```
-
-**Setup Options:**
-- **Local Development**: Docker Desktop (Mac/Windows) + Kubernetes, or Minikube/Kind
-- **Cloud Environments**: EKS (AWS), GKE (Google Cloud), AKS (Azure)
+1. Go to: https://github.com/settings/tokens
+2. Click **"Generate new token"** (Classic)
+3. Fill in:
+   - Name: `argocd-token`
+   - Expiration: 1 year
+4. Select scopes:
+   - ✅ `repo` (Full control of private repositories)
+   - ✅ `read:org`
+   - ✅ `admin:repo_hook`
+5. Click **"Generate token"** and **save it** - you'll need it next
 
 ---
 
-### Phase 1️⃣: Create Kubernetes Cluster
+### Step 3: Connect Your Repository to ArgoCD
 
-Choose one option below:
-
-#### Option A: Docker Desktop (Easiest - Mac/Windows)
+Access ArgoCD and connect your repo:
 
 ```bash
-# 1. Install Docker Desktop from https://www.docker.com/products/docker-desktop
+# 1. Get ArgoCD admin password
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
 
-# 2. Enable Kubernetes
-# Go to Docker Desktop → Preferences/Settings → Kubernetes
-# Click "Enable Kubernetes" and wait for it to start
-
-# 3. Verify cluster is running
-kubectl cluster-info
-kubectl get nodes
-```
-
-#### Option B: Minikube (Linux/Mac/Windows)
-
-```bash
-# 1. Install Minikube from https://minikube.sigs.k8s.io/
-
-# 2. Start Minikube cluster
-minikube start --cpus=4 --memory=8192 --disk-size=50g
-
-# 3. Enable ingress addon (needed for this template)
-minikube addons enable ingress
-
-# 4. Verify cluster
-minikube status
-kubectl get nodes
-```
-
-#### Option C: Kind (Lightweight - Linux/Mac/Windows)
-
-```bash
-# 1. Install Kind from https://kind.sigs.k8s.io/
-
-# 2. Create Kind cluster
-kind create cluster --name devops-cluster
-
-# 3. Enable ingress (optional but recommended)
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-
-# 4. Verify cluster
-kind get clusters
-kubectl get nodes
-```
-
-#### Option D: Cloud (AWS EKS, Google GKE, Azure AKS)
-
-```bash
-# AWS EKS Example
-aws eks create-cluster \
-  --name devops-cluster \
-  --version 1.27 \
-  --role-arn arn:aws:iam::ACCOUNT_ID:role/eks-service-role \
-  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy
-
-# Then update kubeconfig
-aws eks update-kubeconfig --name devops-cluster
-
-# Verify
-kubectl cluster-info
-```
-
----
-
-### Phase 2️⃣: Add Helm Repositories
-
-Helm is Kubernetes' package manager. Add the required repositories:
-
-```bash
-# Add Helm repositories for our infrastructure components
-helm repo add stable https://charts.helm.sh/stable
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo add argocd https://argoproj.github.io/argo-helm
-helm repo add loki https://grafana.github.io/loki/charts
-
-# Update Helm cache
-helm repo update
-
-# Verify repos are added
-helm repo list
-```
-
----
-
-### Phase 3️⃣: Create Namespaces
-
-Kubernetes namespaces isolate resources. Create your multi-environment namespaces:
-
-```bash
-# Create namespaces for 3 environments
-kubectl create namespace dev
-kubectl create namespace staging
-kubectl create namespace production
-
-# Create namespace for infrastructure (ArgoCD, monitoring)
-kubectl create namespace argocd
-kubectl create namespace monitoring
-
-# Verify all namespaces
-kubectl get namespaces
-```
-
-Expected output:
-```
-NAME              STATUS   AGE
-default           Active   1m
-dev               Active   30s
-staging           Active   30s
-production        Active   30s
-argocd            Active   30s
-monitoring        Active   30s
-```
-
----
-
-### Phase 4️⃣: Deploy ArgoCD (GitOps Engine)
-
-ArgoCD automatically deploys your applications based on Git changes:
-
-```bash
-# 1. Create ArgoCD namespace (if not done above)
-kubectl create namespace argocd
-
-# 2. Install ArgoCD using Helm
-helm install argocd argocd/argo-cd \
-  --namespace argocd \
-  --set server.service.type=NodePort
-
-# 3. Wait for ArgoCD to be ready (~1-2 minutes)
-kubectl wait --for=condition=Ready pod \
-  -l app.kubernetes.io/name=argocd-server \
-  -n argocd \
-  --timeout=300s
-
-# 4. Verify ArgoCD is running
-kubectl get pods -n argocd
-
-# 5. Get ArgoCD admin password
-kubectl get secret argocd-initial-admin-secret \
-  -n argocd \
-  -o jsonpath="{.data.password}" | base64 -d
-
-# 6. Access ArgoCD dashboard
+# 2. Port forward to ArgoCD
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 
-# Open: https://localhost:8080
-# Login: admin / [password from step 5]
-```
-
----
-
-### Phase 5️⃣: Deploy Prometheus (Metrics Collection)
-
-Prometheus scrapes metrics from your cluster:
-
-```bash
-# 1. Install kube-prometheus-stack (Prometheus + Grafana + Alerts)
-helm install kube-prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring \
-  --create-namespace
-
-# 2. Wait for pods to be ready
-kubectl wait --for=condition=Ready pod \
-  -l release=kube-prometheus \
-  -n monitoring \
-  --timeout=300s
-
-# 3. Verify Prometheus is running
-kubectl get pods -n monitoring
-
-# 4. Port forward to Prometheus
-kubectl port-forward svc/kube-prometheus-prometheus -n monitoring 9090:9090 &
-
-# Open: http://localhost:9090
-# You can query metrics here (try: up)
-```
-
----
-
-### Phase 6️⃣: Deploy Grafana (Dashboards & Visualization)
-
-Grafana displays your metrics with beautiful dashboards:
-
-```bash
-# 1. Get Grafana admin password (set by kube-prometheus-stack)
-kubectl get secret kube-prometheus-grafana \
-  -n monitoring \
-  -o jsonpath="{.data.admin-password}" | base64 -d
-
-# 2. Port forward to Grafana
-kubectl port-forward svc/kube-prometheus-grafana -n monitoring 3000:80 &
-
-# Open: http://localhost:3000
+# 3. Open browser: https://localhost:8080
 # Login: admin / [password from step 1]
-
-# 3. Verify data sources
-# Settings (⚙️) → Data Sources
-# You should see "Prometheus" already configured
 ```
 
-**Optional: Import Popular Dashboards**
-```bash
-# In Grafana UI:
-# Click "Dashboards" → "Import"
-# Enter ID: 1860 (Node Exporter Full)
-# Select Prometheus data source
-# Click "Import"
+In ArgoCD Dashboard:
+1. Click **Settings** (⚙️) → **Repositories**
+2. Click **"+ Connect a repo using HTTPS"**
+3. Enter:
+   - Repository URL: `https://github.com/YOUR-USERNAME/your-project`
+   - Username: `YOUR-GITHUB-USERNAME`
+   - Password: `[YOUR-GITHUB-TOKEN]`
+4. Click **Connect** ✅
 
-# Useful dashboard IDs:
-# 6417  - Kubernetes Cluster Monitoring
-# 1860  - Node Exporter Full
-# 8588  - Kubernetes Deployment Statefulset Daemonset Workload Status
+---
+
+### Step 4: Create ArgoCD Applications (One for Each Environment)
+
+Create 3 applications to link your Git branches to Kubernetes namespaces.
+
+**Create App 1: Dev Environment**
+
+In ArgoCD, click **+ NEW APP** and fill in:
+
+```
+Application Name:     my-service-dev
+Repository URL:       https://github.com/YOUR-USERNAME/your-project
+Revision:             dev
+Path:                 helm/my-service
+Cluster URL:          https://kubernetes.default.svc
+Namespace:            dev
+Sync Policy:          Automatic ✅
 ```
 
----
+Click **Create** ✅
 
-### Phase 7️⃣: Deploy Loki (Log Aggregation)
+**Create App 2: Staging Environment**
 
-Loki collects logs from all your pods:
+Click **+ NEW APP** again:
 
-```bash
-# 1. Install Loki + Promtail
-helm install loki grafana/loki-stack \
-  --namespace monitoring
-
-# 2. Wait for Loki to be ready
-kubectl wait --for=condition=Ready pod \
-  -l app=loki \
-  -n monitoring \
-  --timeout=300s
-
-# 3. Verify Loki is running
-kubectl get pods -n monitoring | grep loki
-
-# 4. Add Loki as data source in Grafana
-# Settings (⚙️) → Data Sources → Add
-# Name: Loki
-# URL: http://loki:3100
-# Click "Save & Test"
-
-# 5. Query logs in Grafana
-# Explore → Select Loki
-# Try: {namespace="dev"}
-# You'll see all logs from dev namespace
+```
+Application Name:     my-service-staging
+Repository URL:       https://github.com/YOUR-USERNAME/your-project
+Revision:             staging
+Path:                 helm/my-service
+Cluster URL:          https://kubernetes.default.svc
+Namespace:            staging
+Sync Policy:          Automatic ✅
 ```
 
----
+Click **Create** ✅
 
-### Phase 8️⃣: Setup Multi-Environment Network Policies (Optional)
+**Create App 3: Production Environment**
 
-Isolate your environments from each other:
+Click **+ NEW APP** one more time:
 
-```bash
-# Create network policy to isolate namespaces
-cat <<EOF | kubectl apply -f -
----
-# Deny all traffic between namespaces by default
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: dev
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: staging
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: production
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-EOF
-
-# Verify policies
-kubectl get networkpolicies -n dev
-kubectl get networkpolicies -n staging
-kubectl get networkpolicies -n production
+```
+Application Name:     my-service-prod
+Repository URL:       https://github.com/YOUR-USERNAME/your-project
+Revision:             main
+Path:                 helm/my-service
+Cluster URL:          https://kubernetes.default.svc
+Namespace:            production
+Sync Policy:          Automatic ✅
 ```
 
+Click **Create** ✅
+
 ---
 
-### ✅ Verification Checklist
+### ✅ Verification
 
-After deployment, verify everything is working:
+You should now see in ArgoCD:
 
-```bash
-# 1. Check all namespaces exist
-kubectl get namespaces
-# Expected: dev, staging, production, argocd, monitoring
-
-# 2. Check ArgoCD is running
-kubectl get pods -n argocd
-# Expected: ~5 ArgoCD pods in Running state
-
-# 3. Check Prometheus is running
-kubectl get pods -n monitoring | grep prometheus
-# Expected: prometheus pod in Running state
-
-# 4. Check Grafana is running
-kubectl get pods -n monitoring | grep grafana
-# Expected: grafana pod in Running state
-
-# 5. Check Loki is running
-kubectl get pods -n monitoring | grep loki
-# Expected: loki pod in Running state
-
-# 6. Verify all services are accessible
-kubectl get svc -n argocd
-kubectl get svc -n monitoring
-
-# 7. Test ArgoCD dashboard
-# http://localhost:8080 (admin password ready)
-
-# 8. Test Grafana dashboard
-# http://localhost:3000 (admin password ready)
-
-# 9. Test Prometheus
-# http://localhost:9090 (metrics page ready)
 ```
+✅ my-service-dev       → Synced
+✅ my-service-staging   → Synced
+✅ my-service-prod      → Synced
+```
+
+**Perfect!** Your infrastructure is now connected to your Git repository.
 
 ---
 
 ## ⚡ Quick Start (5 Minutes to GitOps)
 
-### What You Need to Provide
-
-1. **Your Git Repository** (GitHub)
-   - 3 branches: `dev`, `staging`, `main`
-   - Your application code
-   - Your Helm charts
-
-2. **Your Project Details**
-   - Project name
-   - Service name(s)
-   - Port numbers
-   - Container image registry
-
-3. **Your GitHub Token**
-   - For ArgoCD to access your repo
-
 ---
 
-## 📋 Step-by-Step Configuration (15 Minutes)
+## 🔄 Development Workflow
 
-### **Step 1: Prepare Your Git Repository**
+Once everything is connected, your workflow is simple:
 
-Your GitHub repo should have this structure:
-
-```
-your-project-repo/
-├── .github/workflows/          # CI/CD pipelines
-│   └── deploy.yml
-├── helm/                       # Helm charts for deployment
-│   └── my-service/
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       └── templates/
-│           ├── deployment.yaml
-│           ├── service.yaml
-│           └── ingress.yaml
-├── src/                        # Your application code
-│   ├── server.js
-│   ├── package.json
-│   └── Dockerfile
-└── README.md
-```
-
-**The 3 Git Branches You Need:**
-```
-main branch     → production environment
-staging branch  → staging environment
-dev branch      → development environment
-```
-
-Each push to a branch automatically triggers deployment to the matching environment.
-
----
-
-### **Step 2: Create GitHub Personal Access Token**
-
-ArgoCD needs permission to pull from your repository:
-
-1. Go to: https://github.com/settings/tokens
-2. Click **"Generate new token"** (Classic)
-3. Name it: `argocd-deployment-token`
-4. Set expiration: 1 year (or 90 days)
-5. Select **scopes**:
-   - ✅ `repo` (Full control of private repositories)
-   - ✅ `read:org` (Read organization)
-   - ✅ `admin:repo_hook` (Repository hooks)
-6. Click **"Generate token"**
-7. **SAVE THIS TOKEN** - you'll need it in Step 3
-
-Example token: `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
----
-
-### **Step 3: Connect Your Repository to ArgoCD**
-
-The cluster already has ArgoCD installed. You just need to connect your repo:
-
-#### 3a. Access ArgoCD Dashboard
-
-```bash
-# Get the ArgoCD admin password
-kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
-
-# Port forward to access dashboard
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-
-# Open: https://localhost:8080
-# Login: admin / [password from above]
-```
-
-#### 3b. Add Your Repository
-
-In ArgoCD Dashboard:
-
-1. Click **Settings** (⚙️ icon, left sidebar)
-2. Click **Repositories**
-3. Click **"+ Connect a repo using HTTPS"**
-4. Fill in:
-   ```
-   Repository URL: https://github.com/YOUR-USERNAME/your-project
-   Username: YOUR-GITHUB-USERNAME
-   Password: [YOUR-GITHUB-TOKEN-FROM-STEP-2]
-   ```
-5. Click **Connect**
-6. Expected: ✅ Connection successful
-
----
-
-### **Step 4: Create ArgoCD Applications (for each environment)**
-
-Now link your branches to environments:
-
-#### 4a. Create Dev Environment Application
-
-In ArgoCD Dashboard, click **+ NEW APP**:
-
-```
-GENERAL:
-  Application Name: my-service-dev
-  Project Name: default
-  Sync Policy: Automatic ✅ (auto-sync on Git push)
-
-SOURCE:
-  Repository URL: https://github.com/YOUR-USERNAME/your-project
-  Revision: dev (the dev branch)
-  Path: helm/my-service
-
-DESTINATION:
-  Cluster URL: https://kubernetes.default.svc
-  Namespace: dev
-```
-
-Click **Create** ✅
-
-#### 4b. Create Staging Environment Application
-
-Click **+ NEW APP** again:
-
-```
-GENERAL:
-  Application Name: my-service-staging
-  Project Name: default
-  Sync Policy: Automatic ✅
-
-SOURCE:
-  Repository URL: https://github.com/YOUR-USERNAME/your-project
-  Revision: staging (the staging branch)
-  Path: helm/my-service
-
-DESTINATION:
-  Cluster URL: https://kubernetes.default.svc
-  Namespace: staging
-```
-
-Click **Create** ✅
-
-#### 4c. Create Production Environment Application
-
-Click **+ NEW APP** one more time:
-
-```
-GENERAL:
-  Application Name: my-service-prod
-  Project Name: default
-  Sync Policy: Automatic ✅
-
-SOURCE:
-  Repository URL: https://github.com/YOUR-USERNAME/your-project
-  Revision: main (the main branch)
-  Path: helm/my-service
-
-DESTINATION:
-  Cluster URL: https://kubernetes.default.svc
-  Namespace: production
-```
-
-Click **Create** ✅
-
----
-
-### **Step 5: Verify Multi-Environment Setup**
-
-In ArgoCD Dashboard, you should now see 3 applications:
-
-```
-✅ my-service-dev       → Synced (from dev branch)
-✅ my-service-staging   → Synced (from staging branch)  
-✅ my-service-prod      → Synced (from main branch)
-```
-
-Each one monitors its branch and auto-deploys on changes!
-
----
-
-## 🔄 GitOps Workflow (How It Works Now)
-
-### Your Development Workflow
+### Dev → Staging → Production
 
 ```
 1. Make code changes on dev branch
    ↓
-2. Push to GitHub: git push origin dev
+2. git push origin dev
    ↓
-3. ArgoCD detects change immediately
-   ↓
-4. Automatically deploys to dev namespace ✅
+3. ArgoCD auto-deploys to dev namespace ✅
    (within seconds)
-
-5. Test and verify in dev environment
    ↓
-6. Create Pull Request: dev → staging
+4. Test and verify
    ↓
-7. Merge PR to staging branch
+5. git merge dev → staging branch
    ↓
-8. ArgoCD auto-deploys to staging namespace ✅
-   
-9. Final verification in staging
+6. ArgoCD auto-deploys to staging namespace ✅
    ↓
-10. Create Pull Request: staging → main
+7. Final verification
    ↓
-11. Merge PR to main branch
+8. git merge staging → main branch
    ↓
-12. ArgoCD auto-deploys to production namespace ✅
+9. ArgoCD auto-deploys to production namespace ✅
 ```
 
-**No manual deployments needed!** Every push → automatic deployment. That's GitOps.
+**That's it!** No manual deployments. Every push = automatic deployment. That's GitOps.
 
 ---
 
-## 📊 Monitor Your Applications
+## 📊 Monitoring Your Applications
 
-### Access Grafana Dashboard
+### Access Grafana
 
 ```bash
 # Port forward Grafana
@@ -671,455 +264,173 @@ kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80 &
 # Login: admin / prom-operator
 ```
 
-### View Your Application Metrics
+### View Metrics by Environment
 
-In Grafana:
-1. Click a dashboard (e.g., "Kubernetes / Cluster Monitoring")
-2. You'll see:
-   - CPU usage
-   - Memory consumption
-   - Request rates
-   - Error rates
-   - Network traffic
+In Grafana, query metrics for each namespace:
 
-### View Application Logs
+```
+# Dev metrics
+{namespace="dev"}
 
-In Grafana:
-1. Click **Explore** (left sidebar)
-2. Select **Loki** (log viewer)
-3. Run query:
-   ```
-   {namespace="dev"}
-   ```
-   or
-   ```
-   {namespace="staging"}
-   ```
-   or
-   ```
-   {namespace="production"}
-   ```
+# Staging metrics
+{namespace="staging"}
 
-You'll see all logs from that environment in real-time!
+# Production metrics
+{namespace="production"}
+```
+
+### View Logs by Environment
+
+In Grafana (Explore → Loki):
+
+```
+# Dev logs
+{namespace="dev"}
+
+# Staging logs
+{namespace="staging"}
+
+# Production logs
+{namespace="production"}
+```
 
 ---
 
 ## 🔍 Multi-Environment Overview
 
-### Environment Isolation
-
-Each environment is completely isolated:
+Your infrastructure creates 3 isolated environments:
 
 ```
-Dev Environment (dev branch → dev namespace)
-├─ Your dev application instance
-├─ Dev database (if needed)
-├─ Dev configuration
-└─ Dev logs & monitoring
+Dev (dev branch)
+├─ Namespace: dev
+├─ Auto-deploy on push
+└─ Fast iteration
 
-Staging Environment (staging branch → staging namespace)
-├─ Your staging application instance
-├─ Staging database (if needed)
-├─ Staging configuration
-└─ Staging logs & monitoring
+Staging (staging branch)
+├─ Namespace: staging
+├─ Test before production
+└─ Mirror production
 
-Production Environment (main branch → production namespace)
-├─ Your production application instance
-├─ Production database (if needed)
-├─ Production configuration
-└─ Production logs & monitoring
+Production (main branch)
+├─ Namespace: production
+├─ Stable, monitored
+└─ Ready for users
 ```
 
-### Check What's Running in Each Environment
+---
+
+## 🛠️ Useful kubectl Commands
+
+### Check All Environments
 
 ```bash
-# Dev environment
+# View all pods in all environments
+kubectl get pods -A
+
+# Check specific environment
 kubectl get pods -n dev
-
-# Staging environment
 kubectl get pods -n staging
-
-# Production environment
 kubectl get pods -n production
 
-# All environments at once
-kubectl get pods -A
+# View services
+kubectl get svc -n dev
+kubectl get svc -n staging
+kubectl get svc -n production
 ```
 
----
-
-## 🔑 Important Configuration Files
-
-### Your Helm Chart Structure
-
-Each environment reads from the same Helm chart but with different values:
-
-```
-helm/my-service/
-├── Chart.yaml                    # Chart metadata
-├── values.yaml                   # Default values
-├── values-dev.yaml               # Dev overrides
-├── values-staging.yaml           # Staging overrides
-├── values-prod.yaml              # Production overrides
-└── templates/
-    ├── deployment.yaml           # Kubernetes deployment
-    ├── service.yaml              # Service definition
-    ├── ingress.yaml              # Ingress rules
-    └── configmap.yaml            # Environment config
-```
-
-### Environment-Specific Configuration
-
-```yaml
-# values-dev.yaml
-replicaCount: 1
-image:
-  tag: dev-latest
-resources:
-  limits:
-    memory: "256Mi"
-    cpu: "250m"
-
-# values-staging.yaml
-replicaCount: 2
-image:
-  tag: staging-latest
-resources:
-  limits:
-    memory: "512Mi"
-    cpu: "500m"
-
-# values-prod.yaml
-replicaCount: 3
-image:
-  tag: latest
-resources:
-  limits:
-    memory: "1Gi"
-    cpu: "1000m"
-```
-
----
-
-## 🚀 Deployment Flow
-
-### Push to Dev Branch
+### Access Your Services
 
 ```bash
-# Make changes
-nano src/server.js
+# Port forward to dev service
+kubectl port-forward -n dev svc/my-service 3000:3000
 
-# Commit and push to dev branch
-git add src/
-git commit -m "feat: add new endpoint"
-git push origin dev
+# Port forward to staging service
+kubectl port-forward -n staging svc/my-service 3000:3000
+
+# Port forward to production service
+kubectl port-forward -n production svc/my-service 3000:3000
 ```
 
-**What happens automatically:**
-1. GitHub Actions builds Docker image
-2. Pushes to registry
-3. Updates `values-dev.yaml` with new image tag
-4. ArgoCD detects change in 5 seconds
-5. Deploys to `dev` namespace
-6. You can access at: `http://my-service-dev:3000` (or your service port)
-
-### Promote to Staging
+### View Logs
 
 ```bash
-# Create PR from dev to staging
-git checkout staging
-git pull origin staging
-git merge dev
-git push origin staging
-```
-
-**What happens automatically:**
-1. Same GitHub Actions pipeline runs
-2. Updates `values-staging.yaml`
-3. ArgoCD auto-deploys to `staging` namespace
-4. You can verify in staging
-5. Access at: `http://my-service-staging:3000`
-
-### Release to Production
-
-```bash
-# Create PR from staging to main
-git checkout main
-git pull origin main
-git merge staging
-git tag v1.0.0        # (optional) tag releases
-git push origin main --tags
-```
-
-**What happens automatically:**
-1. GitHub Actions runs
-2. Updates `values-prod.yaml`
-3. ArgoCD auto-deploys to `production` namespace
-4. Your production app is live!
-5. Access at: `http://my-service-prod:3000`
-
----
-
-## 📊 Monitoring Multi-Environment
-
-### View Metrics by Environment
-
-In Grafana, create queries for each environment:
-
-```
-# Dev environment metrics
-sum(rate(http_requests_total{namespace="dev"}[5m])) by (pod)
-
-# Staging environment metrics
-sum(rate(http_requests_total{namespace="staging"}[5m])) by (pod)
-
-# Production environment metrics
-sum(rate(http_requests_total{namespace="production"}[5m])) by (pod)
-```
-
-### View Logs by Environment
-
-In Grafana Loki:
-
-```
 # Dev logs
-{namespace="dev", app="my-service"}
+kubectl logs -n dev -f deployment/my-service
 
 # Staging logs
-{namespace="staging", app="my-service"}
+kubectl logs -n staging -f deployment/my-service
 
 # Production logs
-{namespace="production", app="my-service"}
+kubectl logs -n production -f deployment/my-service
 ```
 
 ---
 
-## 🆘 Troubleshooting
+## ⚠️ Troubleshooting
 
-### Problem: "ArgoCD Shows OutOfSync"
-
-**Solution:** ArgoCD detected a change that isn't deployed yet.
+### "Application shows OutOfSync"
 
 ```bash
-# Manual sync (usually not needed - auto-sync should handle it)
-# In ArgoCD Dashboard, click app → SYNC button
-# Or use CLI:
-argocd app sync my-service-dev
+# Manual sync (usually auto-syncs automatically)
+# In ArgoCD Dashboard: Click app → SYNC button
 ```
 
-### Problem: "Application Not Deploying"
+### "Application not deploying"
 
-**Check these:**
+**Check:**
 
-1. Is your GitHub token still valid?
-   ```bash
-   # Re-connect repository in ArgoCD
-   ```
-
-2. Does your Helm chart have the correct path?
-   ```bash
-   # Verify in ArgoCD: Path should match your helm/ folder
-   ```
-
-3. Are your values files correct?
-   ```bash
-   # Test locally:
-   helm template my-service ./helm/my-service -f ./helm/my-service/values-dev.yaml
-   ```
-
+1. Is your GitHub token still valid? → Re-connect repository in ArgoCD
+2. Is the Helm chart path correct? → Verify in ArgoCD app settings
+3. Are the values files correct? → Test locally: `helm template my-service ./helm/my-service`
 4. Check ArgoCD logs:
    ```bash
    kubectl logs -n argocd deployment/argocd-application-controller | tail -20
    ```
 
-### Problem: "Can't Access My Service"
-
-**Get the service endpoint:**
+### "Can't access my service"
 
 ```bash
-# For dev
-kubectl get svc -n dev
+# Verify service exists
+kubectl get svc -n dev  # (or staging/production)
+
+# Port forward to access
 kubectl port-forward -n dev svc/my-service 3000:3000
-
-# For staging
-kubectl get svc -n staging
-kubectl port-forward -n staging svc/my-service 3000:3000
-
-# For production
-kubectl get svc -n production
-kubectl port-forward -n production svc/my-service 3000:3000
 ```
 
 ---
 
-## ✅ Verification Checklist
+## 📋 Verification Checklist
 
-After configuration, verify everything works:
+After setup, verify:
 
-- [ ] GitHub repository has 3 branches (dev, staging, main)
-- [ ] GitHub Personal Access Token created and saved
-- [ ] ArgoCD repository connected successfully
+- [ ] 3 Git branches created (dev, staging, main)
+- [ ] GitHub Personal Access Token saved
+- [ ] ArgoCD repository connected
 - [ ] 3 ArgoCD applications created (dev, staging, prod)
-- [ ] All 3 applications showing "Synced" status
-- [ ] Can access ArgoCD dashboard: https://localhost:8080
+- [ ] All applications showing "Synced"
+- [ ] Can access ArgoCD: https://localhost:8080
 - [ ] Can access Grafana: http://localhost:3000
-- [ ] Can see all 3 namespaces: `kubectl get namespaces`
-  - [ ] dev
-  - [ ] staging
-  - [ ] production
-- [ ] Pods running in each namespace:
-  - [ ] `kubectl get pods -n dev`
-  - [ ] `kubectl get pods -n staging`
-  - [ ] `kubectl get pods -n production`
-- [ ] Can view logs in Grafana Loki for each environment
+- [ ] Can see all namespaces: `kubectl get namespaces`
+- [ ] Pods running: `kubectl get pods -A`
+- [ ] Can view logs in Grafana for each environment
 
 ---
 
-## 📚 Quick Command Reference
+## 🎯 Summary
 
-### ArgoCD Commands
+**Your infrastructure includes:**
 
-```bash
-# Get admin password
-kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+✅ **Local Kubernetes** - Docker Desktop, Minikube, or Kind  
+✅ **ArgoCD** - GitOps automation  
+✅ **Prometheus & Grafana** - Metrics & dashboards  
+✅ **Loki & Promtail** - Centralized logs  
+✅ **3 Environments** - Dev, staging, production  
+✅ **Multi-environment support** - Isolated namespaces  
 
-# Port forward to dashboard
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+**Your workflow:**
 
-# List all applications
-kubectl get applications -n argocd
+1. Push code → ArgoCD detects change → Auto-deploy ✅
+2. Monitor in Grafana → View logs in Loki ✅
+3. Promote through Git branches → Automatic progression ✅
 
-# Check application status
-kubectl describe app my-service-dev -n argocd
-
-# Manual sync (if needed)
-argocd app sync my-service-dev --auth-token $(argocd account generate-token)
-```
-
-### Grafana Commands
-
-```bash
-# Port forward
-kubectl port-forward -n monitoring svc/kube-prometheus-grafana 3000:80 &
-
-# Get admin credentials
-# Username: admin
-# Password: prom-operator (change this!)
-```
-
-### Kubernetes Commands
-
-```bash
-# Check all namespaces
-kubectl get namespaces
-
-# Check pods in specific namespace
-kubectl get pods -n dev
-kubectl get pods -n staging
-kubectl get pods -n production
-
-# View logs
-kubectl logs -n dev -f deployment/my-service
-kubectl logs -n staging -f deployment/my-service
-kubectl logs -n production -f deployment/my-service
-
-# Check services
-kubectl get svc -n dev
-kubectl get svc -n staging
-kubectl get svc -n production
-
-# Port forward to service
-kubectl port-forward -n dev svc/my-service 3000:3000
-kubectl port-forward -n staging svc/my-service 3000:3000
-kubectl port-forward -n production svc/my-service 3000:3000
-```
-
----
-
-## 🎯 What's Ready for You
-
-### ✅ Already Configured (You Don't Need to Do These)
-
-- ✅ Kubernetes cluster running
-- ✅ 3 namespaces (dev, staging, production)
-- ✅ ArgoCD installed and ready
-- ✅ Prometheus collecting metrics
-- ✅ Grafana with dashboards
-- ✅ Loki collecting logs from all environments
-- ✅ Ingress controller configured
-- ✅ Network policies for multi-environment isolation
-
-### ⚠️ You Need to Provide
-
-- ⚠️ Your GitHub repository (with 3 branches)
-- ⚠️ Your Helm charts in `helm/` folder
-- ⚠️ Your application code in `src/` folder
-- ⚠️ Your Dockerfile for containerization
-- ⚠️ GitHub Personal Access Token
-
----
-
-## 🚀 Next Steps
-
-1. **Prepare your GitHub repository** with the 3 branches and Helm charts
-2. **Generate GitHub Personal Access Token** (Step 2 above)
-3. **Connect your repository to ArgoCD** (Step 3 above)
-4. **Create 3 ArgoCD applications** (Step 4 above)
-5. **Push code to dev branch** and watch it auto-deploy
-6. **Promote through staging to production** using Git
-
-**That's it!** Your complete multi-environment DevOps infrastructure is now ready. Focus on developing your service. The infrastructure handles everything else.
-
----
-
-## 💡 Development Tips
-
-1. **Always start with dev branch**
-   - Make changes
-   - Test in dev environment
-   - Push and watch auto-deploy
-
-2. **Use Grafana to monitor**
-   - Check metrics for your service
-   - Set up alerts for production
-   - View logs for debugging
-
-3. **Use GitOps workflow**
-   - Every change goes through Git
-   - Every branch gets its own environment
-   - Full audit trail of all deployments
-
-4. **Keep 3 environments separate**
-   - Test in dev without affecting staging
-   - Verify in staging before production
-   - Production is stable for users
-
----
-
-## 📞 Support
-
-For detailed guides on specific components:
-
-- **ArgoCD Setup**: See `docs/ARGOCD_SETUP_GUIDE.md`
-- **Monitoring**: See `docs/MONITORING_SETUP.md`
-- **Multi-Environment**: See `docs/MULTI_ENVIRONMENT_SETUP.md`
-- **Troubleshooting**: See `docs/TROUBLESHOOTING.md`
-- **Git Workflow**: See `docs/GITOPS_PIPELINE.md`
-
----
-
-## 🎉 Summary
-
-This template provides:
-
-✅ **Complete infrastructure** - Kubernetes, monitoring, GitOps  
-✅ **Multi-environment setup** - dev, staging, production  
-✅ **Automatic deployments** - Push to Git, watch it deploy  
-✅ **Full observability** - Metrics, dashboards, logs  
-✅ **Production-ready** - Used by real applications  
-
-**Your job:** Develop your service. **Our job:** Manage infrastructure.
-
----
-
-**Ready to deploy?** Start with **Step 1: Prepare Your Git Repository** above! 🚀
+**Ready to start?** Create your GitHub repository with 3 branches and Helm charts, then follow Step 2 above! 🚀

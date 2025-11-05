@@ -1,25 +1,36 @@
 #!/bin/bash
 
 ################################################################################
-# DevOps Infrastructure Setup & Automation Script
+# Local DevOps Lab Setup Script
 # 
-# This script automates the complete deployment of a production-grade 
-# multi-environment DevOps infrastructure on Kubernetes.
+# Automates deployment of a complete local Kubernetes development environment
+# with ArgoCD, Prometheus, Grafana, and Loki.
+#
+# Supports:
+#   ✅ Docker Desktop (Mac/Windows)
+#   ✅ Minikube (Linux/Mac/Windows)
+#   ✅ Kind (Linux/Mac/Windows)
 #
 # Features:
-#   ✅ 8-phase automated deployment
-#   ✅ Error handling and validation
+#   ✅ 6-phase automated deployment
+#   ✅ Full error handling and validation
 #   ✅ Progress indicators
 #   ✅ Credential management
 #   ✅ Verification checklist
-#   ✅ Easy rollback support
+#   ✅ Easy cleanup support
 #
 # Usage:
 #   bash scripts/setup-infrastructure.sh
 #   bash scripts/setup-infrastructure.sh --skip-verification
 #   bash scripts/setup-infrastructure.sh --help
 #
-# Time: ~5-10 minutes to complete (vs 30-45 minutes manual)
+# Time: ~5-10 minutes (vs 30-45 minutes manual setup)
+#
+# Prerequisites:
+#   - Docker Desktop, Minikube, or Kind installed
+#   - kubectl configured to access your local cluster
+#   - helm 3.10+
+#   - Internet connection (for downloading container images)
 ################################################################################
 
 set -euo pipefail
